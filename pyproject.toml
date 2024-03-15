@@ -1,0 +1,31 @@
+[tool.poetry]
+description = "code for ddd-in-pyton"
+authors = ["Thomas Coopman <thomas@aardling.eu>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pytest = "^8.1.1"
+flask = "^3.0.2"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff-lsp = "^0.0.53"
+mypy = "^1.9.0"
+python-lsp-server = "^1.11.0"
+pylsp-mypy = "^0.6.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+pythonpath = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
