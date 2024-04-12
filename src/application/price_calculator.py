@@ -11,4 +11,4 @@ class Response:
 
 class PriceCalculator:
     def calculate(self, visit: dict[str, str]) -> Response:
-        return Response(1, "EUR", visit["person_id"], visit["visit_id"])
+        return Response(0, "EUR", visit["person_id"], visit["visit_id"])
