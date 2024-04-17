@@ -1,5 +1,8 @@
 from dataclasses import dataclass
-from functools import reduce
+from typing import Any
+
+from domain.dropped_fraction import DroppedFraction, FractionType
+from domain.weight import Weight
 
 
 @dataclass(frozen=True)
@@ -11,12 +14,21 @@ class Response:
 
 
 class PriceCalculator:
-    def calculate(self, visit: dict[str, str]) -> Response:
-        price_amount = reduce(
-            lambda price, dropped_fraction: price
-            + dropped_fraction["amount_dropped"]
-            * (0.1 if dropped_fraction["fraction_type"] == "Green waste" else 0.15),
-            visit["dropped_fractions"],
-            0,
+    def calculate(self, visit: dict[str, Any]) -> Response:
+        dropped_fractions = map(
+            self.__parse_dropped_fraction, visit["dropped_fractions"]
         )
-        return Response(price_amount, "EUR", visit["person_id"], visit["visit_id"])
+        price = DroppedFraction.sum(dropped_fractions)
+
+        return Response(
+            price.amount,
+            str(price.currency),
+            visit["person_id"],
+            visit["visit_id"],
+        )
+
+    def __parse_dropped_fraction(self, dropped_fraction: Any) -> DroppedFraction:
+        return DroppedFraction(
+            FractionType.from_string(dropped_fraction["fraction_type"]),
+            Weight(dropped_fraction["amount_dropped"]),
+        )
