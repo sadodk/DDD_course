@@ -9,7 +9,7 @@ def test_price_should_be_positive():
 
 def test_price_with_invalid_currency():
     with pytest.raises(ValueError):
-        Price(1, "UR")
+        Price(1, "UR")  # type: ignore
 
 
 def test_with_valid_price():
