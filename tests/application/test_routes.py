@@ -15,7 +15,7 @@ def test_start_scenario():
     assert response.data == b"{}\n"
 
 
-def test_calculate_price():
+def test_calculate_price_with_dropped_fractions():
     response = client.post(
         "/calculatePrice",
         json={
@@ -29,6 +29,31 @@ def test_calculate_price():
     actual = json.loads(response.data)
     expected = {
         "price_amount": 0,
+        "person_id": "Bald Eagle",
+        "visit_id": "1",
+        "price_currency": "EUR",
+    }
+
+    assert actual == expected
+
+
+def test_calculate_price():
+    response = client.post(
+        "/calculatePrice",
+        json={
+            "date": "2023-07-23",
+            "dropped_fractions": [
+                {"amount_dropped": 15, "fraction_type": "Green waste"},
+                {"amount_dropped": 39, "fraction_type": "Construction waste"},
+            ],
+            "person_id": "Bald Eagle",
+            "visit_id": "1",
+        },
+    )
+
+    actual = json.loads(response.data)
+    expected = {
+        "price_amount": 7.35,
         "person_id": "Bald Eagle",
         "visit_id": "1",
         "price_currency": "EUR",

@@ -22,9 +22,9 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = [
-    "--import-mode=importlib",
-]
+#addopts = [
+#    "--import-mode=importlib",
+#]
 pythonpath = ["src"]
 
 [tool.mypy]
