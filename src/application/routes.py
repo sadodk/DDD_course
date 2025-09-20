@@ -1,9 +1,8 @@
-from .price_calculator import PriceCalculator
 from dataclasses import asdict
 from flask import request, Blueprint
 from pydantic import BaseModel
 from typing import List, Any
-from .price_calculator import Visit
+from domain.visit import Visit
 from logging import Logger
 
 logger = Logger("routes")
@@ -42,6 +41,6 @@ def calculate_price():
         visit_id=price_request.visit_id,
     )
 
-    invoice = PriceCalculator().calculate(visit)
+    invoice = visit.create_invoice()
 
     return asdict(invoice)
