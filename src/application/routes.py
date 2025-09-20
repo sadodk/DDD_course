@@ -32,7 +32,7 @@ def start_scenario():
 
 @bp.post("/calculatePrice")
 def calculate_price():
-    visit_data = request.get_json()
+    visit_data = Visit(**request.get_json())
 
     response = PriceCalculator().calculate(visit_data)
 

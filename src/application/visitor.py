@@ -1,4 +1,4 @@
-from repository import Context
+from application.external_visitor_repository import Context
 
 # In your application code
 context = Context()

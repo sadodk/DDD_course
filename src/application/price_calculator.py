@@ -3,6 +3,7 @@ from typing import Any
 
 from domain.dropped_fraction import DroppedFraction, FractionType
 from domain.weight import Weight
+from routes import Visit
 
 
 @dataclass(frozen=True)
@@ -14,18 +15,16 @@ class Response:
 
 
 class PriceCalculator:
-    def calculate(self, visit: dict[str, Any]) -> Response:
-        dropped_fractions = map(
-            self.__parse_dropped_fraction, visit["dropped_fractions"]
-        )
+    def calculate(self, visit: Visit) -> Response:
+        dropped_fractions = map(self.__parse_dropped_fraction, visit.dropped_fractions)
         # Calculates total price using domain logic
         price = DroppedFraction.sum(dropped_fractions)
 
         return Response(
             price.amount,
             str(price.currency),
-            visit["person_id"],
-            visit["visit_id"],
+            visit.person_id,
+            visit.visit_id,
         )
 
     def __parse_dropped_fraction(self, dropped_fraction: Any) -> DroppedFraction:
