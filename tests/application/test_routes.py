@@ -43,18 +43,18 @@ def test_calculate_price():
         json={
             "date": "2023-07-23",
             "dropped_fractions": [
-                {"amount_dropped": 15, "fraction_type": "Green waste"},
-                {"amount_dropped": 39, "fraction_type": "Construction waste"},
+                {"amount_dropped": 83, "fraction_type": "Green waste"},
+                {"amount_dropped": 18, "fraction_type": "Construction waste"},
             ],
-            "person_id": "Bald Eagle",
+            "person_id": "Squirrel Gus",
             "visit_id": "1",
         },
     )
 
     actual = json.loads(response.data)
     expected = {
-        "price_amount": 7.35,
-        "person_id": "Bald Eagle",
+        "price_amount": 10.06,
+        "person_id": "Squirrel Gus",
         "visit_id": "1",
         "price_currency": "EUR",
     }

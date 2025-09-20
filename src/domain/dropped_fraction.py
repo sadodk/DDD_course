@@ -1,9 +1,17 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable
+from typing import Iterable, Optional
 from domain.price import Price, Currency
 from domain.weight import Weight
+
+
+CITY_PRICING = {
+    "Pineville": {"green_waste": 0.10, "construction_waste": 0.15},
+    "Oak City": {"green_waste": 0.08, "construction_waste": 0.19},
+}
+
+DEFAULT_PRICING = {"green_waste": 0.10, "construction_waste": 0.19}
 
 
 class FractionType(Enum):
@@ -35,17 +43,24 @@ class DroppedFraction:
         if not isinstance(self.weight, Weight):
             raise ValueError("weight is invalid")
 
-    def price(self) -> Price:
+    def price(self, city: str | None = None) -> Price:
+        # Get pricing for city or use default
+        pricing = CITY_PRICING.get(city, DEFAULT_PRICING) if city else DEFAULT_PRICING
+
         if self.fraction_type == FractionType.GREEN_WASTE:
-            return Price(0.10, Currency.EUR).times(self.weight.weight)
-        if self.fraction_type == FractionType.CONSTRUCTION_WASTE:
-            return Price(0.15, Currency.EUR).times(self.weight.weight)
+            rate = pricing["green_waste"]
+        elif self.fraction_type == FractionType.CONSTRUCTION_WASTE:
+            rate = pricing["construction_waste"]
         else:
-            return Price(0, Currency.EUR)
+            rate = 0
+
+        return Price(rate, Currency.EUR).times(self.weight.weight)
 
     @staticmethod
-    def sum(dropped_fractions: Iterable[DroppedFraction]) -> Price:
+    def sum(
+        dropped_fractions: Iterable[DroppedFraction], city: str | None = None
+    ) -> Price:
         total_price = Price(0, Currency.EUR)
         for fraction in dropped_fractions:
-            total_price = total_price.add(fraction.price())
+            total_price = total_price.add(fraction.price(city))
         return total_price
