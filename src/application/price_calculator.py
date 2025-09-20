@@ -18,6 +18,7 @@ class PriceCalculator:
         dropped_fractions = map(
             self.__parse_dropped_fraction, visit["dropped_fractions"]
         )
+        # Calculates total price using domain logic
         price = DroppedFraction.sum(dropped_fractions)
 
         return Response(

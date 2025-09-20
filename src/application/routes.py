@@ -2,7 +2,7 @@ from dataclasses import asdict
 from flask import request, Blueprint
 from pydantic import BaseModel
 from typing import List, Any
-from domain.visit import Visit
+from application.price_calculator import PriceCalculator
 from logging import Logger
 
 logger = Logger("routes")
@@ -10,7 +10,7 @@ logger = Logger("routes")
 bp = Blueprint("routes", __name__)
 
 
-class PriceRequest(BaseModel):
+class Visit(BaseModel):
     date: str
     dropped_fractions: List[dict[str, Any]]
     person_id: str
@@ -32,15 +32,8 @@ def start_scenario():
 
 @bp.post("/calculatePrice")
 def calculate_price():
-    price_request = PriceRequest(**request.get_json())
+    visit_data = request.get_json()
 
-    visit = Visit(
-        date=price_request.date,
-        dropped_fractions=price_request.dropped_fractions,
-        person_id=price_request.person_id,
-        visit_id=price_request.visit_id,
-    )
+    response = PriceCalculator().calculate(visit_data)
 
-    invoice = visit.create_invoice()
-
-    return asdict(invoice)
+    return asdict(response)

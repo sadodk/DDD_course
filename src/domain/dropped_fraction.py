@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from functools import reduce
+from typing import Iterable
 from domain.price import Price, Currency
 from domain.weight import Weight
 
@@ -40,11 +40,12 @@ class DroppedFraction:
             return Price(0.10, Currency.EUR).times(self.weight.weight)
         if self.fraction_type == FractionType.CONSTRUCTION_WASTE:
             return Price(0.15, Currency.EUR).times(self.weight.weight)
+        else:
+            return Price(0, Currency.EUR)
 
     @staticmethod
-    def sum(dropped_fractions: list[DroppedFraction]) -> Price:
-        return reduce(
-            lambda price, dropped_fraction: price.add(dropped_fraction.price()),
-            dropped_fractions,
-            Price(0, Currency.EUR),
-        )
+    def sum(dropped_fractions: Iterable[DroppedFraction]) -> Price:
+        total_price = Price(0, Currency.EUR)
+        for fraction in dropped_fractions:
+            total_price = total_price.add(fraction.price())
+        return total_price
