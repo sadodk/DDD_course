@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import requests
+from domain.monthly_visit_tracker import MonthlyVisitTracker
 
 
 @dataclass
@@ -68,7 +69,9 @@ class ExternalVisitorService:
 class Context:
     def __init__(self):
         self.external_visitor_service = ExternalVisitorService()
+        self.monthly_visit_tracker = MonthlyVisitTracker()
 
     def start_scenario(self) -> None:
         """Called at the start of each scenario to reset state."""
         self.external_visitor_service.clear_cache()
+        self.monthly_visit_tracker.clear_all_visits()

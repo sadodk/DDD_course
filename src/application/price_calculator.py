@@ -4,6 +4,7 @@ from typing import Any
 from domain.dropped_fraction import DroppedFraction, FractionType
 from domain.weight import Weight
 from application.external_visitor_repository import ExternalVisitorService
+from domain.monthly_visit_tracker import MonthlyVisitTracker
 
 
 @dataclass(frozen=True)
@@ -15,25 +16,38 @@ class Response:
 
 
 class PriceCalculator:
-    def __init__(self, visitor_service: ExternalVisitorService):
+    def __init__(
+        self,
+        visitor_service: ExternalVisitorService,
+        visit_tracker: MonthlyVisitTracker,
+    ):
         self.visitor_service = visitor_service
+        self.visit_tracker = visit_tracker
 
     def calculate(self, visit) -> Response:  # Accept dict or Pydantic model
         # Fetch visitor to get their city
         visitor = self.visitor_service.get_visitor_by_id(visit.person_id)
         visitor_city = visitor.city if visitor else None
 
-        # Parse fractions and calculate with city pricing
+        # Parse fractions and calculate base price with city pricing
         dropped_fractions = [
-            self.__parse_dropped_fraction(fraction) 
+            self.__parse_dropped_fraction(fraction)
             for fraction in visit.dropped_fractions
         ]
-        
-        price = DroppedFraction.sum(dropped_fractions, visitor_city)
+
+        base_price = DroppedFraction.sum(dropped_fractions, visitor_city)
+
+        # Record this visit for monthly tracking
+        self.visit_tracker.record_visit(visit.person_id, visit.date, visit.visit_id)
+
+        # Apply monthly surcharge if applicable (3rd+ visit in month)
+        final_price = self.visit_tracker.apply_monthly_surcharge(
+            base_price, visit.person_id, visit.date
+        )
 
         return Response(
-            price.amount,
-            str(price.currency),
+            final_price.amount,
+            str(final_price.currency),
             visit.person_id,
             visit.visit_id,
         )

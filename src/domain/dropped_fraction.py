@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable, Optional
+from typing import Iterable
 from domain.price import Price, Currency
 from domain.weight import Weight
 

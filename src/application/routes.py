@@ -40,8 +40,10 @@ def calculate_price():
     visit_data = Visit(**request.get_json())
     logger.info(f"Received visit: {visit_data}")
 
-    # Create calculator with visitor service
-    calculator = PriceCalculator(context.external_visitor_service)
+    # Create calculator with visitor service and visit tracker
+    calculator = PriceCalculator(
+        context.external_visitor_service, context.monthly_visit_tracker
+    )
     response = calculator.calculate(visit_data)
 
     return asdict(response)

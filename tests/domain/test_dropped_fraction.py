@@ -27,7 +27,7 @@ def test_price_for_construction_waste() -> None:
         FractionType.from_string("Construction waste"), Weight(20)
     )
 
-    assert Price(20 * 0.15, Currency.EUR) == construction_waste.price()
+    assert Price(20 * 0.19, Currency.EUR) == construction_waste.price()
 
 
 def test_price_for_multiple_fractions() -> None:
@@ -36,6 +36,6 @@ def test_price_for_multiple_fractions() -> None:
     )
     green_waste = DroppedFraction(FractionType.from_string("Green waste"), Weight(10))
 
-    assert Price(20 * 0.15 + 10 * 0.10, Currency.EUR) == DroppedFraction.sum(
+    assert Price(20 * 0.19 + 10 * 0.10, Currency.EUR) == DroppedFraction.sum(
         [construction_waste, green_waste]
     )
