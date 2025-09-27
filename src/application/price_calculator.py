@@ -26,7 +26,8 @@ class PriceResponse:
 class PriceCalculator:
     """Clean price calculator using domain entities.
 
-    This service focuses on the core business logic with minimal complexity.
+    This service coordinates between external services, repositories, and domain services
+    to calculate the price of a visit.
     """
 
     def __init__(
@@ -51,12 +52,16 @@ class PriceCalculator:
         # Create domain entities from request data
         visit = self._create_visit_entity(visit_data)
 
+        # Fetch visitor information to get city for pricing
+        visitor_info = self._visitor_service.get_visitor_by_id(visit_data["person_id"])
+        visitor_city = visitor_info.city if visitor_info else None
+
         # Save the visit so the surcharge service can see it
         self._visit_repository.save(visit)
 
-        # Calculate total price using domain service
+        # Calculate total price using domain service, passing visitor city
         total_price = self._surcharge_service.calculate_total_price_with_surcharge(
-            visit
+            visit, visitor_city
         )
 
         return PriceResponse(

@@ -5,6 +5,7 @@ monthly surcharge fees based on visit frequency.
 """
 
 from decimal import Decimal
+from typing import Optional
 from domain.entities.visit import Visit
 from domain.repositories.visit_repository import VisitRepository
 from domain.types import PersonId, Year, Month
@@ -31,11 +32,14 @@ class MonthlySurchargeService:
         """
         self._visit_repository = visit_repository
 
-    def calculate_surcharge_for_visit(self, visit: Visit) -> Price:
+    def calculate_surcharge_for_visit(
+        self, visit: Visit, visitor_city: Optional[str] = None
+    ) -> Price:
         """Calculate surcharge amount for a specific visit.
 
         Args:
             visit: The visit to calculate surcharge for
+            visitor_city: Optional city for city-specific pricing
 
         Returns:
             Surcharge amount (0.00 if no surcharge applies)
@@ -43,21 +47,46 @@ class MonthlySurchargeService:
         if not self._should_apply_surcharge(visit):
             return Price(0.0, Currency.EUR)
 
-        base_price = visit.calculate_base_price()
+        base_price = visit.calculate_base_price(visitor_city)
         surcharge_amount = float(Decimal(str(base_price.amount)) * self.SURCHARGE_RATE)
         return Price(surcharge_amount, base_price.currency)
 
-    def calculate_total_price_with_surcharge(self, visit: Visit) -> Price:
+    def _calculate_surcharge_for_base_price(
+        self, visit: Visit, base_price: Price
+    ) -> Price:
+        """Calculate surcharge amount for a given base price.
+
+        Args:
+            visit: The visit to check surcharge eligibility
+            base_price: Pre-calculated base price
+
+        Returns:
+            Surcharge amount (0.00 if no surcharge applies)
+        """
+        if not self._should_apply_surcharge(visit):
+            return Price(0.0, Currency.EUR)
+
+        surcharge_amount = float(Decimal(str(base_price.amount)) * self.SURCHARGE_RATE)
+        return Price(surcharge_amount, base_price.currency)
+
+    def calculate_total_price_with_surcharge(
+        self, visit: Visit, visitor_city: Optional[str] = None
+    ) -> Price:
         """Calculate total price including surcharge for a visit.
 
         Args:
             visit: The visit to calculate total price for
+            visitor_city: Optional city for city-specific pricing
 
         Returns:
             Total price including any applicable surcharge
         """
-        base_price = visit.calculate_base_price()
-        surcharge = self.calculate_surcharge_for_visit(visit)
+        # Calculate base price only once
+        base_price = visit.calculate_base_price(visitor_city)
+
+        # Calculate surcharge using the already computed base price
+        surcharge = self._calculate_surcharge_for_base_price(visit, base_price)
+
         return base_price.add(surcharge)
 
     def is_surcharge_applicable(self, visit: Visit) -> bool:

@@ -6,14 +6,6 @@ from domain.price import Price, Currency
 from domain.weight import Weight
 
 
-CITY_PRICING = {
-    "Pineville": {"green_waste": 0.10, "construction_waste": 0.15},
-    "Oak City": {"green_waste": 0.08, "construction_waste": 0.19},
-}
-
-DEFAULT_PRICING = {"green_waste": 0.10, "construction_waste": 0.19}
-
-
 class FractionType(Enum):
     GREEN_WASTE = "Green waste"
     CONSTRUCTION_WASTE = "Construction waste"
@@ -44,13 +36,26 @@ class DroppedFraction:
             raise ValueError("weight is invalid")
 
     def price(self, city: str | None = None) -> Price:
-        # Get pricing for city or use default
-        pricing = CITY_PRICING.get(city, DEFAULT_PRICING) if city else DEFAULT_PRICING
+        """Calculate price for this dropped fraction.
+
+        Note: This method uses hardcoded pricing for workshop purposes.
+        In a real application, pricing would be injected via a PricingService.
+        """
+        # Temporary hardcoded pricing for workshop - should be injected in real app
+        default_rates = {"green_waste": 0.10, "construction_waste": 0.19}
+
+        city_rates = {
+            "Pineville": {"green_waste": 0.12, "construction_waste": 0.13},
+            "Oak City": {"green_waste": 0.08, "construction_waste": 0.21},
+        }
+
+        # Use city-specific rates if available, otherwise default
+        rates = city_rates.get(city, default_rates) if city else default_rates
 
         if self.fraction_type == FractionType.GREEN_WASTE:
-            rate = pricing["green_waste"]
+            rate = rates["green_waste"]
         elif self.fraction_type == FractionType.CONSTRUCTION_WASTE:
-            rate = pricing["construction_waste"]
+            rate = rates["construction_waste"]
         else:
             rate = 0
 

@@ -47,7 +47,7 @@ def calculate_price():
         logger.info(f"Processing visit: {visit_request.visit_id}")
 
         # Calculate price using domain entities and services
-        response = app.price_calculator.calculate_price(visit_request.dict())
+        response = app.price_calculator.calculate_price(visit_request.model_dump())
 
         return asdict(response)
 

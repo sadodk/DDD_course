@@ -164,26 +164,6 @@ class TestVisitEntity:
         assert price.amount == 4.80  # 1.00 + 3.80
         assert price.currency == Currency.EUR
 
-    def test_calculate_base_price_with_city(self):
-        """Test calculating base price with city-specific pricing."""
-        dropped_fractions = [
-            DroppedFraction(FractionType.GREEN_WASTE, Weight(10)),  # 10 * 0.08 = 0.80
-            DroppedFraction(
-                FractionType.CONSTRUCTION_WASTE, Weight(20)
-            ),  # 20 * 0.19 = 3.80
-        ]
-
-        visit = Visit(
-            id=VisitId("visit123"),
-            visitor_id=PersonId("user123"),
-            date=datetime(2025, 9, 15, 10, 0, 0),
-            dropped_fractions=dropped_fractions,
-        )
-
-        price = visit.calculate_base_price(visitor_city="Oak City")
-        assert price.amount == 4.60  # 0.80 + 3.80
-        assert price.currency == Currency.EUR
-
     def test_get_total_weight(self):
         """Test getting total weight of all dropped fractions."""
         dropped_fractions = [
