@@ -52,18 +52,21 @@ class Visit:
         """Hash based on identity for use in sets/dicts."""
         return hash(self.id)
 
-    def calculate_base_price(self, visitor_city: str | None = None) -> Price:
+    def calculate_base_price(
+        self, visitor_city: str | None = None, customer_type: str | None = None
+    ) -> Price:
         """
         Calculate the base price for this visit based on dropped fractions.
         Delegates to domain value objects
 
         Args:
             visitor_city: The city of the visitor for city-specific pricing
+            customer_type: The customer type ('individual' for private, 'business' for business)
 
         Returns:
             The calculated base price before any surcharges
         """
-        return DroppedFraction.sum(self.dropped_fractions, visitor_city)
+        return DroppedFraction.sum(self.dropped_fractions, visitor_city, customer_type)
 
     def get_total_weight(self) -> int:
         """Get the total weight of all dropped fractions in this visit.

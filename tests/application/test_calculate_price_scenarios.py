@@ -112,3 +112,33 @@ class TestCalculatePriceScenarios:
         result2 = json.loads(response2.data)
         assert result2["price_amount"] == 42.21
         assert result2["person_id"] == "Bear Billy"
+
+    def test_squirrel_gus_scenario(self):
+        """Test price calculation for Squirrel Gus scenario."""
+        # Reset scenario to ensure clean state
+        client.post("/startScenario")
+
+        response = client.post(
+            "/calculatePrice",
+            json={
+                "date": "2023-07-23",
+                "dropped_fractions": [
+                    {"amount_dropped": 83, "fraction_type": "Green waste"},
+                    {"amount_dropped": 18, "fraction_type": "Construction waste"},
+                ],
+                "person_id": "Squirrel Gus",
+                "visit_id": "1",
+            },
+        )
+
+        assert response.status_code == 200
+        actual = json.loads(response.data)
+
+        expected = {
+            "price_amount": 10.06,
+            "person_id": "Squirrel Gus",
+            "visit_id": "1",
+            "price_currency": "EUR",
+        }
+
+        assert actual == expected

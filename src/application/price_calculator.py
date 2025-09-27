@@ -52,16 +52,17 @@ class PriceCalculator:
         # Create domain entities from request data
         visit = self._create_visit_entity(visit_data)
 
-        # Fetch visitor information to get city for pricing
+        # Fetch visitor information to get city and customer type for pricing
         visitor_info = self._visitor_service.get_visitor_by_id(visit_data["person_id"])
         visitor_city = visitor_info.city if visitor_info else None
+        customer_type = visitor_info.type if visitor_info else None
 
         # Save the visit so the surcharge service can see it
         self._visit_repository.save(visit)
 
-        # Calculate total price using domain service, passing visitor city
+        # Calculate total price using domain service, passing visitor city and type
         total_price = self._surcharge_service.calculate_total_price_with_surcharge(
-            visit, visitor_city
+            visit, visitor_city, customer_type
         )
 
         return PriceResponse(

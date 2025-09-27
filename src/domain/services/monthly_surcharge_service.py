@@ -33,13 +33,17 @@ class MonthlySurchargeService:
         self._visit_repository = visit_repository
 
     def calculate_surcharge_for_visit(
-        self, visit: Visit, visitor_city: Optional[str] = None
+        self,
+        visit: Visit,
+        visitor_city: Optional[str] = None,
+        customer_type: Optional[str] = None,
     ) -> Price:
         """Calculate surcharge amount for a specific visit.
 
         Args:
             visit: The visit to calculate surcharge for
             visitor_city: Optional city for city-specific pricing
+            customer_type: Optional customer type for customer-specific pricing
 
         Returns:
             Surcharge amount (0.00 if no surcharge applies)
@@ -47,7 +51,7 @@ class MonthlySurchargeService:
         if not self._should_apply_surcharge(visit):
             return Price(0.0, Currency.EUR)
 
-        base_price = visit.calculate_base_price(visitor_city)
+        base_price = visit.calculate_base_price(visitor_city, customer_type)
         surcharge_amount = float(Decimal(str(base_price.amount)) * self.SURCHARGE_RATE)
         return Price(surcharge_amount, base_price.currency)
 
@@ -70,19 +74,23 @@ class MonthlySurchargeService:
         return Price(surcharge_amount, base_price.currency)
 
     def calculate_total_price_with_surcharge(
-        self, visit: Visit, visitor_city: Optional[str] = None
+        self,
+        visit: Visit,
+        visitor_city: Optional[str] = None,
+        customer_type: Optional[str] = None,
     ) -> Price:
         """Calculate total price including surcharge for a visit.
 
         Args:
             visit: The visit to calculate total price for
             visitor_city: Optional city for city-specific pricing
+            customer_type: Optional customer type for customer-specific pricing
 
         Returns:
             Total price including any applicable surcharge
         """
         # Calculate base price only once
-        base_price = visit.calculate_base_price(visitor_city)
+        base_price = visit.calculate_base_price(visitor_city, customer_type)
 
         # Calculate surcharge using the already computed base price
         surcharge = self._calculate_surcharge_for_base_price(visit, base_price)

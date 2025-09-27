@@ -35,22 +35,48 @@ class DroppedFraction:
         if not isinstance(self.weight, Weight):
             raise ValueError("weight is invalid")
 
-    def price(self, city: str | None = None) -> Price:
-        """Calculate price for this dropped fraction.
+    def price(self, city: str | None = None, customer_type: str | None = None) -> Price:
+        """Calculate price for this dropped fraction based on city and customer type.
 
-        Note: This method uses hardcoded pricing for workshop purposes.
-        In a real application, pricing would be injected via a PricingService.
+        Args:
+            city: The city for city-specific pricing
+            customer_type: The customer type ('individual' for private, 'business' for business)
+
+        Returns:
+            Price for this dropped fraction
         """
-        # Temporary hardcoded pricing for workshop - should be injected in real app
-        default_rates = {"green_waste": 0.10, "construction_waste": 0.19}
+        # Default rates for private customers
+        default_private_rates = {"green_waste": 0.10, "construction_waste": 0.19}
 
-        city_rates = {
+        # City-specific rates for private customers (existing behavior)
+        city_private_rates = {
+            "Pineville": {"green_waste": 0.10, "construction_waste": 0.15},
+            "Oak City": {"green_waste": 0.08, "construction_waste": 0.19},
+        }
+
+        # Business customer rates by city
+        city_business_rates = {
             "Pineville": {"green_waste": 0.12, "construction_waste": 0.13},
             "Oak City": {"green_waste": 0.08, "construction_waste": 0.21},
         }
 
-        # Use city-specific rates if available, otherwise default
-        rates = city_rates.get(city, default_rates) if city else default_rates
+        # Default business rates (same as private for now, but explicit)
+        default_business_rates = {"green_waste": 0.10, "construction_waste": 0.19}
+
+        # Determine which rate table to use
+        if customer_type == "business":
+            rates = (
+                city_business_rates.get(city, default_business_rates)
+                if city
+                else default_business_rates
+            )
+        else:
+            # Default to private customer rates for 'individual' or None
+            rates = (
+                city_private_rates.get(city, default_private_rates)
+                if city
+                else default_private_rates
+            )
 
         if self.fraction_type == FractionType.GREEN_WASTE:
             rate = rates["green_waste"]
@@ -63,9 +89,11 @@ class DroppedFraction:
 
     @staticmethod
     def sum(
-        dropped_fractions: Iterable[DroppedFraction], city: str | None = None
+        dropped_fractions: Iterable[DroppedFraction],
+        city: str | None = None,
+        customer_type: str | None = None,
     ) -> Price:
         total_price = Price(0, Currency.EUR)
         for fraction in dropped_fractions:
-            total_price = total_price.add(fraction.price(city))
+            total_price = total_price.add(fraction.price(city, customer_type))
         return total_price
