@@ -1,18 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Set, NewType
+from typing import Dict, Set
 from domain.price import Price
+from domain.types import PersonId, VisitId, Year, Month
 
 
-# Ubiquitous language types for better clarity
-PersonId = NewType("PersonId", str)
-VisitId = NewType("VisitId", str)
-VisitDate = NewType("VisitDate", str)
-Year = NewType("Year", int)
-Month = NewType("Month", int)
-
-# Composite types that express domain concepts
+# Composite types that express domain concepts using shared types
 VisitKey = tuple[
     Year, Month, VisitId
 ]  # Unique identifier for a visit in a specific month
@@ -31,7 +25,7 @@ class MonthlyVisitTracker:
     """
 
     # Track visits per person per month using meaningful domain types
-    _visits_by_person_month: VisitRegistry = field(default_factory=dict)
+    visit_registry: VisitRegistry = field(default_factory=dict)
 
     def record_visit(self, person_id: str, visit_date: str, visit_id: str) -> None:
         """Record a visit for a person on a specific date."""
@@ -45,18 +39,18 @@ class MonthlyVisitTracker:
         month = Month(date_obj.month)
 
         # Initialize person's visits if not exists
-        if domain_person_id not in self._visits_by_person_month:
-            self._visits_by_person_month[domain_person_id] = set()
+        if domain_person_id not in self.visit_registry:
+            self.visit_registry[domain_person_id] = set()
 
         # Add this visit using meaningful domain types
         visit_key: VisitKey = (year, month, domain_visit_id)
-        self._visits_by_person_month[domain_person_id].add(visit_key)
+        self.visit_registry[domain_person_id].add(visit_key)
 
     def get_monthly_visit_count(self, person_id: str, visit_date: str) -> int:
         """Get the number of visits for a person in the month of the given date."""
         domain_person_id = PersonId(person_id)
 
-        if domain_person_id not in self._visits_by_person_month:
+        if domain_person_id not in self.visit_registry:
             return 0
 
         # Parse the date to get year and month
@@ -67,7 +61,7 @@ class MonthlyVisitTracker:
         # Count visits in the same month using meaningful domain types
         visits_in_month = [
             visit
-            for visit in self._visits_by_person_month[domain_person_id]
+            for visit in self.visit_registry[domain_person_id]
             if visit[0] == target_year and visit[1] == target_month
         ]
 
@@ -106,4 +100,4 @@ class MonthlyVisitTracker:
 
     def clear_all_visits(self) -> None:
         """Clear all recorded visits. Used when starting a new scenario."""
-        self._visits_by_person_month.clear()
+        self.visit_registry.clear()

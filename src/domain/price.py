@@ -11,7 +11,7 @@ class Currency(Enum):
 
 
 @dataclass(frozen=True)
-class Price:
+class Price:  # value object
     amount: float
     currency: Currency
 

@@ -27,6 +27,8 @@ class PriceCalculator:
     def calculate(self, visit) -> Response:  # Accept dict or Pydantic model
         # Fetch visitor to get their city
         visitor = self.visitor_service.get_visitor_by_id(visit.person_id)
+        if not visitor:
+            raise ValueError(f"Visitor with ID {visit.person_id} not found")
         visitor_city = visitor.city if visitor else None
 
         # Parse fractions and calculate base price with city pricing

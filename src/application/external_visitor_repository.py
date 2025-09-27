@@ -15,6 +15,10 @@ class VisitorInfo:
     # Add other fields as needed based on the API response
 
 
+# For caching discuss with Domain how often the data changes
+# Consider using a time-based cache invalidation strategy
+
+
 class ExternalVisitorService:
     def __init__(self):
         self.base_url = "https://ddd-in-language.aardling.eu"

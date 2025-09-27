@@ -1,0 +1,51 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://marketplace.visualstudio.com/items?itemName=pomdtr.excalidraw-editor",
+  "elements": [
+    {
+      "id": "8EfI08nSMcwms7lFdNh4a",
+      "type": "text",
+      "x": 2489.7176000682757,
+      "y": 713.0050797905551,
+      "width": 670.4795532226562,
+      "height": 225,
+      "angle": 0,
+      "strokeColor": "#2f9e44",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "al",
+      "roundness": null,
+      "seed": 2011907774,
+      "version": 542,
+      "versionNonce": 145659778,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1758950514853,
+      "link": null,
+      "locked": false,
+      "text": "Todo:\n\nMake a person interface and visit store interface in domain\nput the actual repo's in the repo layer. \n\nPut the calculation (business logic) in the domain layer always.\nremember to make visit a value object (inmutable)\n\nreturn back the visit domain object which can calculate its own visit.",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Todo:\n\nMake a person interface and visit store interface in domain\nput the actual repo's in the repo layer. \n\nPut the calculation (business logic) in the domain layer always.\nremember to make visit a value object (inmutable)\n\nreturn back the visit domain object which can calculate its own visit.",
+      "autoResize": true,
+      "lineHeight": 1.25
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}
