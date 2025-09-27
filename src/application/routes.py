@@ -1,49 +1,56 @@
+"""Flask routes using DDD entities."""
+
 from dataclasses import asdict
 from flask import request, Blueprint
 from pydantic import BaseModel
-from typing import List, Any
-from application.price_calculator import PriceCalculator
-from application.external_visitor_repository import ExternalVisitorService, Context
+from typing import List, Dict, Any
 from logging import Logger
+
+from application.application_context import ApplicationContext
 
 logger = Logger("routes")
 bp = Blueprint("routes", __name__)
 
-# Initialize context and services
-context = Context()
+# Application setup
+app = ApplicationContext()
 
 
-class Visit(BaseModel):
+class VisitRequest(BaseModel):
+    """Visit request model."""
+
     date: str
-    dropped_fractions: List[dict[str, Any]]
+    dropped_fractions: List[Dict[str, Any]]
     person_id: str
     visit_id: str
 
 
 @bp.route("/")
-def hello_world():
+def health_check():
+    """Health check."""
     return {"status": "OK"}
 
 
-# This is run every time a scenario starts, in case you need to reset certain
-# things at the beginning of a scenario
 @bp.post("/startScenario")
 def start_scenario():
-    # Reset context for new scenario
-    context.start_scenario()
-    logger.info("starting scenario")
+    """Reset for new test scenario."""
+    app.reset_for_new_scenario()
+    logger.info("New scenario started")
     return {}
 
 
 @bp.post("/calculatePrice")
 def calculate_price():
-    visit_data = Visit(**request.get_json())
-    logger.info(f"Received visit: {visit_data}")
+    """Calculate price using clean DDD approach."""
+    try:
+        # Parse request
+        visit_request = VisitRequest(**request.get_json())
+        logger.info(f"Processing visit: {visit_request.visit_id}")
 
-    # Create calculator with visitor service and visit tracker
-    calculator = PriceCalculator(
-        context.external_visitor_service, context.monthly_visit_tracker
-    )
-    response = calculator.calculate(visit_data)
+        # Calculate price using domain entities and services
+        response = app.price_calculator.calculate_price(visit_request.dict())
 
-    return asdict(response)
+        return asdict(response)
+
+    except Exception as e:
+        logger.error(f"Price calculation error: {e}")
+        return {"error": str(e)}, 400
