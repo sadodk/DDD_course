@@ -5,3 +5,7 @@ Domain services handle complex business logic that:
 2. Requires coordination across multiple entities
 3. Implements business rules that span domain boundaries
 """
+
+from .monthly_surcharge_service import MonthlySurchargeService
+
+__all__ = ["MonthlySurchargeService"]
