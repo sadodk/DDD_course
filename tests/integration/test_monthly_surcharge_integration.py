@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 from application.application_context import ApplicationContext
-from application.external_visitor_repository import VisitorInfo
+from application.external_visitor_service import VisitorInfo
 
 
 class TestMonthlySurchargeIntegration:

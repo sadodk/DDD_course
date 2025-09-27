@@ -10,7 +10,7 @@ from domain.repositories.visit_repository import VisitRepository
 from domain.types import PersonId, VisitId
 from domain.dropped_fraction import DroppedFraction, FractionType
 from domain.weight import Weight
-from application.external_visitor_repository import ExternalVisitorService
+from application.external_visitor_service import ExternalVisitorService
 
 
 @dataclass(frozen=True)
