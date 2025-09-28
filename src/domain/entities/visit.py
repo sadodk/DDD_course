@@ -67,11 +67,11 @@ class Visit:
             The calculated base price before any surcharges
         """
         return DroppedFraction.sum(
-            self.dropped_fractions, 
-            visitor_city, 
+            self.dropped_fractions,
+            visitor_city,
             customer_type,
             str(self.visitor_id),  # Pass visitor_id for exemption tracking
-            self.date  # Pass visit_date for exemption tracking
+            self.date,  # Pass visit_date for exemption tracking
         )
 
     def get_total_weight(self) -> int:
