@@ -4,8 +4,6 @@ from enum import Enum
 from typing import Iterable
 from domain.price import Price, Currency
 from domain.weight import Weight
-from domain.business_rules.pricing_rule_engine import PricingRuleEngine
-from domain.business_rules.interface_pricing_rules import PricingContext
 
 
 class FractionType(Enum):
@@ -47,6 +45,10 @@ class DroppedFraction:
         Returns:
             Price for this dropped fraction
         """
+        # Import here to avoid circular dependencies
+        from domain.business_rules.pricing_rule_engine import PricingRuleEngine
+        from domain.business_rules.interface_pricing_rules import PricingContext
+
         # Create pricing context from parameters
         context = PricingContext(customer_type=customer_type, city=city)
 

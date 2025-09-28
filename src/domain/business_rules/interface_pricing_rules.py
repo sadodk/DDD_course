@@ -1,10 +1,13 @@
 """Domain objects for pricing business rules."""
 
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
-from domain.dropped_fraction import DroppedFraction
+from typing import Optional, TYPE_CHECKING
 from domain.price import Price
+
+if TYPE_CHECKING:
+    from domain.dropped_fraction import DroppedFraction
 
 
 @dataclass(frozen=True)
