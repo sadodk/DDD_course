@@ -40,7 +40,7 @@ class PricingRuleEngine:
     def _get_default_rules(self) -> List[PricingRule]:
         """Get the default set of pricing rules."""
         return [
-            OakCityBusinessConstructionExemptionRule(),  # Highest priority for Oak City business exemptions
+            OakCityBusinessConstructionExemptionRule(),  # Uses singleton exemption service
             PinevillePricingRule(),
             OakCityPricingRule(),
             BusinessCustomerDiscountRule(),

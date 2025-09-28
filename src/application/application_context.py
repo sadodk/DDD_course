@@ -3,6 +3,7 @@
 from application.external_visitor_service import ExternalVisitorService
 from application.price_calculator import PriceCalculator
 from domain.services.monthly_surcharge_service import MonthlySurchargeService
+from domain.construction_waste_exemption_service import ConstructionWasteExemptionService
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )
@@ -40,3 +41,5 @@ class ApplicationContext:
         """Reset state for testing scenarios."""
         self.visit_repository.clear_all_visits()
         self.visitor_service._users_cache = None
+        # Reset the singleton exemption service
+        ConstructionWasteExemptionService.reset_singleton()

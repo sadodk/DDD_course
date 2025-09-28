@@ -19,12 +19,15 @@ class TestOakCityBusinessConstructionExemptionRule(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        # Reset singleton to ensure test isolation
+        ConstructionWasteExemptionService.reset_singleton()
         self.exemption_service = ConstructionWasteExemptionService()
         self.rule = OakCityBusinessConstructionExemptionRule(self.exemption_service)
 
     def tearDown(self):
         """Clean up after each test."""
-        self.exemption_service.clear_all_exemptions()
+        # Reset singleton after each test to ensure isolation
+        ConstructionWasteExemptionService.reset_singleton()
 
     def test_can_apply_oak_city_business_with_required_fields(self):
         """Rule should apply to Oak City business customers with visitor_id and visit_date."""
@@ -230,7 +233,14 @@ class TestConstructionWasteExemptionService(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        # Reset singleton to ensure test isolation
+        ConstructionWasteExemptionService.reset_singleton()
         self.service = ConstructionWasteExemptionService()
+
+    def tearDown(self):
+        """Clean up after each test."""
+        # Reset singleton after each test to ensure isolation
+        ConstructionWasteExemptionService.reset_singleton()
 
     def test_get_used_exemption_no_prior_usage(self):
         """Test getting exemption usage with no prior usage."""

@@ -15,12 +15,32 @@ class ConstructionWasteExemptionService:
 
     Tracks cumulative construction waste per business customer per calendar year.
     Exemptions reset automatically at the start of each calendar year.
+    
+    This service uses a singleton pattern to ensure exemption state is shared
+    across all pricing calculations.
     """
+
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._exemption_usage = {}
+            cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self):
         """Initialize the exemption service with empty tracking."""
-        # Key: (visitor_id, year) -> cumulative_weight_kg
-        self._exemption_usage: Dict[Tuple[str, int], float] = {}
+        # Only initialize once (singleton pattern)
+        if not self._initialized:
+            # Key: (visitor_id, year) -> cumulative_weight_kg
+            self._exemption_usage: Dict[Tuple[str, int], float] = {}
+            self._initialized = True
+
+    @classmethod 
+    def reset_singleton(cls):
+        """Reset the singleton instance - useful for testing."""
+        cls._instance = None
 
     def get_used_exemption(self, visitor_id: str, year: int) -> float:
         """Get the amount of exemption already used by a visitor in a given year.
