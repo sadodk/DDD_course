@@ -1,10 +1,10 @@
 """Tests for pricing business rules."""
 
-from domain.business_rules.interface_pricing_rules import (
-    PricingContext,
+from domain.business_rules.interface_pricing_rules import PricingContext
+from domain.business_rules.concrete_pricing_rules import (
+    PinevillePricingRule,
     DefaultPricingRule,
 )
-from domain.business_rules.concrete_pricing_rules import PinevillePricingRule
 from domain.business_rules.pricing_rule_engine import PricingRuleEngine
 from domain.dropped_fraction import DroppedFraction, FractionType
 from domain.weight import Weight
@@ -55,7 +55,7 @@ class TestPinevillePricingRule:
         fraction = DroppedFraction(FractionType.GREEN_WASTE, Weight(10))
 
         price = rule.calculate_price(fraction, context)
-        expected = Price(0.5, Currency.EUR)  # 0.05 * 10.0
+        expected = Price(1.0, Currency.EUR)  # 0.10 * 10
 
         assert price == expected
 
@@ -66,7 +66,7 @@ class TestPinevillePricingRule:
         fraction = DroppedFraction(FractionType.CONSTRUCTION_WASTE, Weight(5))
 
         price = rule.calculate_price(fraction, context)
-        expected = Price(0.18 * 5, Currency.EUR)  # 0.18 * 5
+        expected = Price(0.13 * 5, Currency.EUR)  # 0.13 * 5
 
         assert price == expected
 
@@ -81,7 +81,7 @@ class TestPricingRuleEngine:
         fraction = DroppedFraction(FractionType.GREEN_WASTE, Weight(10))
 
         price = engine.calculate_price(fraction, context)
-        expected = Price(0.5, Currency.EUR)  # Pineville individual rate: 0.05 * 10.0
+        expected = Price(1.0, Currency.EUR)  # Pineville individual rate: 0.10 * 10
 
         assert price == expected
 
@@ -92,7 +92,7 @@ class TestPricingRuleEngine:
         fraction = DroppedFraction(FractionType.CONSTRUCTION_WASTE, Weight(4))
 
         price = engine.calculate_price(fraction, context)
-        expected = Price(1.0, Currency.EUR)  # Oak City business rate: 0.25 * 4.0
+        expected = Price(0.84, Currency.EUR)  # Oak City business rate: 0.21 * 4
 
         assert price == expected
 
@@ -103,7 +103,7 @@ class TestPricingRuleEngine:
         fraction = DroppedFraction(FractionType.GREEN_WASTE, Weight(13))
 
         price = engine.calculate_price(fraction, context)
-        expected = Price(1.04, Currency.EUR)  # Business discount rate: 0.08 * 13
+        expected = Price(1.3, Currency.EUR)  # Business discount rate: 0.10 * 13
 
         assert price == expected
 

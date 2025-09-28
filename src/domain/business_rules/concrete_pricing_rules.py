@@ -8,9 +8,9 @@ from domain.price import Price, Currency
 class PinevillePricingRule(PricingRule):
     """Pricing rule for Pineville city."""
 
-    INDIVIDUAL_RATES = {"Green waste": 0.05, "Construction waste": 0.15}
+    INDIVIDUAL_RATES = {"Green waste": 0.10, "Construction waste": 0.15}
 
-    BUSINESS_RATES = {"Green waste": 0.08, "Construction waste": 0.18}
+    BUSINESS_RATES = {"Green waste": 0.12, "Construction waste": 0.13}
 
     def can_apply(self, context: PricingContext) -> bool:
         """Applies to visitors from Pineville."""
@@ -37,9 +37,9 @@ class PinevillePricingRule(PricingRule):
 class OakCityPricingRule(PricingRule):
     """Pricing rule for Oak City."""
 
-    INDIVIDUAL_RATES = {"Green waste": 0.12, "Construction waste": 0.22}
+    INDIVIDUAL_RATES = {"Green waste": 0.08, "Construction waste": 0.19}
 
-    BUSINESS_RATES = {"Green waste": 0.15, "Construction waste": 0.25}
+    BUSINESS_RATES = {"Green waste": 0.08, "Construction waste": 0.21}
 
     def can_apply(self, context: PricingContext) -> bool:
         """Applies to visitors from Oak City."""
@@ -66,7 +66,7 @@ class OakCityPricingRule(PricingRule):
 class BusinessCustomerDiscountRule(PricingRule):
     """General discount rule for business customers from unknown cities."""
 
-    DISCOUNT_RATES = {"Green waste": 0.08, "Construction waste": 0.16}
+    DISCOUNT_RATES = {"Green waste": 0.10, "Construction waste": 0.19}
 
     def can_apply(self, context: PricingContext) -> bool:
         """Applies to business customers from cities without specific rules."""

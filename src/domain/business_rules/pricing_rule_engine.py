@@ -7,9 +7,9 @@ from domain.business_rules.interface_pricing_rules import (
 )
 from domain.business_rules.concrete_pricing_rules import (
     PinevillePricingRule,
-    DefaultPricingRule,
     OakCityPricingRule,
     BusinessCustomerDiscountRule,
+    DefaultPricingRule,
 )
 from domain.dropped_fraction import DroppedFraction
 from domain.price import Price

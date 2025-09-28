@@ -4,6 +4,8 @@ from enum import Enum
 from typing import Iterable
 from domain.price import Price, Currency
 from domain.weight import Weight
+from domain.business_rules.pricing_rule_engine import PricingRuleEngine
+from domain.business_rules.interface_pricing_rules import PricingContext
 
 
 class FractionType(Enum):
@@ -45,47 +47,12 @@ class DroppedFraction:
         Returns:
             Price for this dropped fraction
         """
-        # Default rates for private customers
-        default_private_rates = {"green_waste": 0.10, "construction_waste": 0.19}
+        # Create pricing context from parameters
+        context = PricingContext(customer_type=customer_type, city=city)
 
-        # City-specific rates for private customers (existing behavior)
-        city_private_rates = {
-            "Pineville": {"green_waste": 0.10, "construction_waste": 0.15},
-            "Oak City": {"green_waste": 0.08, "construction_waste": 0.19},
-        }
-
-        # Business customer rates by city
-        city_business_rates = {
-            "Pineville": {"green_waste": 0.12, "construction_waste": 0.13},
-            "Oak City": {"green_waste": 0.08, "construction_waste": 0.21},
-        }
-
-        # Default business rates (same as private for now, but explicit)
-        default_business_rates = {"green_waste": 0.10, "construction_waste": 0.19}
-
-        # Determine which rate table to use
-        if customer_type == "business":
-            rates = (
-                city_business_rates.get(city, default_business_rates)
-                if city
-                else default_business_rates
-            )
-        else:
-            # Default to private customer rates for 'individual' or None
-            rates = (
-                city_private_rates.get(city, default_private_rates)
-                if city
-                else default_private_rates
-            )
-
-        if self.fraction_type == FractionType.GREEN_WASTE:
-            rate = rates["green_waste"]
-        elif self.fraction_type == FractionType.CONSTRUCTION_WASTE:
-            rate = rates["construction_waste"]
-        else:
-            rate = 0
-
-        return Price(rate, Currency.EUR).times(self.weight.weight)
+        # Use pricing rule engine to calculate price
+        engine = PricingRuleEngine()
+        return engine.calculate_price(self, context)
 
     @staticmethod
     def sum(
