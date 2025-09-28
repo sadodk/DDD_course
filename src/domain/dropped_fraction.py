@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable
+from datetime import datetime
 from domain.price import Price, Currency
 from domain.weight import Weight
 
@@ -35,12 +36,20 @@ class DroppedFraction:
         if not isinstance(self.weight, Weight):
             raise ValueError("weight is invalid")
 
-    def price(self, city: str | None = None, customer_type: str | None = None) -> Price:
+    def price(
+        self,
+        city: str | None = None,
+        customer_type: str | None = None,
+        visitor_id: str | None = None,
+        visit_date: datetime | None = None,
+    ) -> Price:
         """Calculate price for this dropped fraction based on city and customer type.
 
         Args:
             city: The city for city-specific pricing
             customer_type: The customer type ('individual' for private, 'business' for business)
+            visitor_id: The unique identifier for the visitor (needed for exemption tracking)
+            visit_date: The date of the visit (needed for calendar year exemptions)
 
         Returns:
             Price for this dropped fraction
@@ -50,7 +59,12 @@ class DroppedFraction:
         from domain.business_rules.interface_pricing_rules import PricingContext
 
         # Create pricing context from parameters
-        context = PricingContext(customer_type=customer_type, city=city)
+        context = PricingContext(
+            customer_type=customer_type,
+            city=city,
+            visitor_id=visitor_id,
+            visit_date=visit_date,
+        )
 
         # Use pricing rule engine to calculate price
         engine = PricingRuleEngine()
@@ -61,8 +75,12 @@ class DroppedFraction:
         dropped_fractions: Iterable[DroppedFraction],
         city: str | None = None,
         customer_type: str | None = None,
+        visitor_id: str | None = None,
+        visit_date: datetime | None = None,
     ) -> Price:
         total_price = Price(0, Currency.EUR)
         for fraction in dropped_fractions:
-            total_price = total_price.add(fraction.price(city, customer_type))
+            total_price = total_price.add(
+                fraction.price(city, customer_type, visitor_id, visit_date)
+            )
         return total_price

@@ -6,6 +6,7 @@ from domain.business_rules.interface_pricing_rules import (
     PricingContext,
 )
 from domain.business_rules.concrete_pricing_rules import (
+    OakCityBusinessConstructionExemptionRule,
     PinevillePricingRule,
     OakCityPricingRule,
     BusinessCustomerDiscountRule,
@@ -39,6 +40,7 @@ class PricingRuleEngine:
     def _get_default_rules(self) -> List[PricingRule]:
         """Get the default set of pricing rules."""
         return [
+            OakCityBusinessConstructionExemptionRule(),  # Highest priority for Oak City business exemptions
             PinevillePricingRule(),
             OakCityPricingRule(),
             BusinessCustomerDiscountRule(),

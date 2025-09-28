@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
+from datetime import datetime
 from domain.price import Price
 
 if TYPE_CHECKING:
@@ -16,6 +17,8 @@ class PricingContext:
 
     customer_type: Optional[str] = None  # 'individual' or 'business'
     city: Optional[str] = None
+    visitor_id: Optional[str] = None  # For tracking exemptions per visitor
+    visit_date: Optional[datetime] = None  # For calendar year tracking
 
     def is_business_customer(self) -> bool:
         """Check if this is a business customer."""
