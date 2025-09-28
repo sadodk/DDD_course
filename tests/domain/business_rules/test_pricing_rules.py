@@ -1,6 +1,9 @@
 """Tests for pricing business rules."""
 
-from domain.business_rules.pricing_rules import PricingContext, DefaultPricingRule
+from domain.business_rules.interface_pricing_rules import (
+    PricingContext,
+    DefaultPricingRule,
+)
 from domain.business_rules.concrete_pricing_rules import PinevillePricingRule
 from domain.business_rules.pricing_rule_engine import PricingRuleEngine
 from domain.dropped_fraction import DroppedFraction, FractionType

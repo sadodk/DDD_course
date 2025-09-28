@@ -68,28 +68,3 @@ class PricingRule(ABC):
             Priority value (0 = highest priority)
         """
         pass
-
-
-class DefaultPricingRule(PricingRule):
-    """Default pricing rule that serves as fallback when no other rules apply."""
-
-    DEFAULT_RATES = {"Green waste": 0.10, "Construction waste": 0.19}
-
-    def can_apply(self, context: PricingContext) -> bool:
-        """Default rule always applies as fallback."""
-        return True
-
-    def calculate_price(
-        self, fraction: DroppedFraction, context: PricingContext
-    ) -> Price:
-        """Calculate price using default rates."""
-        fraction_name = str(fraction.fraction_type)
-        rate = self.DEFAULT_RATES.get(fraction_name, 0.0)
-
-        from domain.price import Currency
-
-        return Price(rate, Currency.EUR).times(fraction.weight.weight)
-
-    def get_priority(self) -> int:
-        """Lowest priority - used as fallback."""
-        return 1000

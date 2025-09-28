@@ -1,6 +1,6 @@
 """Concrete pricing rules for specific business scenarios."""
 
-from domain.business_rules.pricing_rules import PricingRule, PricingContext
+from domain.business_rules.interface_pricing_rules import PricingRule, PricingContext
 from domain.dropped_fraction import DroppedFraction
 from domain.price import Price, Currency
 
