@@ -8,6 +8,9 @@ from domain.price import Price, Currency
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )
+from infrastructure.repositories.in_memory_visitor_repository import (
+    InMemoryVisitorRepository,
+)
 
 
 class TestPriceCalculator:
@@ -18,9 +21,13 @@ class TestPriceCalculator:
         self.visitor_service = Mock()
         self.surcharge_service = Mock()
         self.visit_repository = InMemoryVisitRepository()
+        self.visitor_repository = InMemoryVisitorRepository()
 
         self.calculator = PriceCalculator(
-            self.visitor_service, self.surcharge_service, self.visit_repository
+            self.visitor_service,
+            self.surcharge_service,
+            self.visit_repository,
+            self.visitor_repository,
         )
 
         # Mock visitor data

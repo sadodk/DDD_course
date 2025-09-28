@@ -3,8 +3,10 @@
 from datetime import datetime
 from domain.services.monthly_surcharge_service import MonthlySurchargeService
 from domain.entities.visit import Visit
+from domain.entities.visitor import Visitor
 from domain.repositories.visit_repository import VisitRepository
-from domain.types import VisitId, PersonId, Year, Month
+from domain.repositories.visitor_repository import VisitorRepository
+from domain.types import VisitId, PersonId, Year, Month, CardId, EmailAddress
 from domain.dropped_fraction import DroppedFraction, FractionType
 from domain.weight import Weight
 from domain.price import Currency
@@ -65,18 +67,71 @@ class MockVisitRepository(VisitRepository):
         pass
 
 
+class MockVisitorRepository(VisitorRepository):
+    """Mock implementation of VisitorRepository for testing."""
+
+    def __init__(self):
+        self._visitors = {}
+
+    def add_visitor(self, visitor: Visitor) -> None:
+        """Test helper to add visitors."""
+        self._visitors[visitor.id] = visitor
+
+    def find_by_id(self, visitor_id: PersonId) -> Visitor | None:
+        return self._visitors.get(visitor_id)
+
+    # Other abstract methods (not needed for testing)
+    def save(self, visitor: Visitor) -> None:
+        pass
+
+    def delete(self, visitor_id: PersonId) -> bool:
+        return False
+
+    def find_by_city(self, city: str) -> list[Visitor]:
+        return []
+
+    def find_by_card_id(self, card_id: str) -> Visitor | None:
+        return None
+
+    def exists(self, visitor_id: PersonId) -> bool:
+        return visitor_id in self._visitors
+
+    def find_all(self) -> list[Visitor]:
+        return list(self._visitors.values())
+
+    def count(self) -> int:
+        return len(self._visitors)
+
+    def clear(self) -> None:
+        pass
+
+
 class TestMonthlySurchargeService:
     """Test cases for MonthlySurchargeService."""
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.mock_repo = MockVisitRepository()
-        self.service = MonthlySurchargeService(self.mock_repo)
+        self.mock_visit_repo = MockVisitRepository()
+        self.mock_visitor_repo = MockVisitorRepository()
+        self.service = MonthlySurchargeService(
+            self.mock_visit_repo, self.mock_visitor_repo
+        )
 
         # Common test data
         self.visitor_id = PersonId("visitor123")
         self.year = Year(2025)
         self.month = Month(9)
+
+        # Create default individual visitor for tests
+        self.individual_visitor = Visitor(
+            id=self.visitor_id,
+            type="individual",
+            address="123 Main St",
+            city="TestCity",
+            card_id=CardId("CARD001"),
+            email=EmailAddress("test@example.com"),
+        )
+        self.mock_visitor_repo.add_visitor(self.individual_visitor)
 
     def _create_visit(self, visit_id: str, date: datetime, weight: int = 10) -> Visit:
         """Helper to create a visit with test data."""
@@ -96,7 +151,7 @@ class TestMonthlySurchargeService:
             self._create_visit("visit1", datetime(2025, 9, 5)),
             self._create_visit("visit2", datetime(2025, 9, 15)),
         ]
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, self.month, visits
         )
 
@@ -121,7 +176,7 @@ class TestMonthlySurchargeService:
             self._create_visit("visit2", datetime(2025, 9, 15)),
             self._create_visit("visit3", datetime(2025, 9, 25)),
         ]
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, self.month, visits
         )
 
@@ -151,7 +206,7 @@ class TestMonthlySurchargeService:
             self._create_visit("visit3", datetime(2025, 9, 20)),
             self._create_visit("visit4", datetime(2025, 9, 25)),
         ]
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, self.month, visits
         )
 
@@ -168,7 +223,7 @@ class TestMonthlySurchargeService:
             self._create_visit("visit1", datetime(2025, 9, 5)),
             self._create_visit("visit2", datetime(2025, 9, 15)),
         ]
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, self.month, visits
         )
 
@@ -195,7 +250,7 @@ class TestMonthlySurchargeService:
             self._create_visit("visit2", datetime(2025, 9, 15)),
             self._create_visit("visit3", datetime(2025, 9, 25)),
         ]
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, self.month, visits
         )
 
@@ -221,7 +276,9 @@ class TestMonthlySurchargeService:
     def test_monthly_visit_summary_no_visits(self):
         """Test monthly summary with no visits."""
         # Setup: No visits
-        self.mock_repo.set_visits_for_month(self.visitor_id, self.year, self.month, [])
+        self.mock_visit_repo.set_visits_for_month(
+            self.visitor_id, self.year, self.month, []
+        )
 
         summary = self.service.get_monthly_visit_summary(
             self.visitor_id, self.year, self.month
@@ -256,7 +313,7 @@ class TestMonthlySurchargeService:
         ]
 
         # Mock setup for September (2 visits)
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, Month(9), sept_visits
         )
 
@@ -265,7 +322,7 @@ class TestMonthlySurchargeService:
             assert not self.service.is_surcharge_applicable(visit)
 
         # Mock setup for October (2 visits)
-        self.mock_repo.set_visits_for_month(
+        self.mock_visit_repo.set_visits_for_month(
             self.visitor_id, self.year, Month(10), oct_visits
         )
 

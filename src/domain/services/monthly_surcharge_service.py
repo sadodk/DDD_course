@@ -8,6 +8,7 @@ from decimal import Decimal
 from typing import Optional
 from domain.entities.visit import Visit
 from domain.repositories.visit_repository import VisitRepository
+from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import PersonId, Year, Month
 from domain.price import Price, Currency
 
@@ -16,7 +17,8 @@ class MonthlySurchargeService:
     """Domain service for calculating monthly surcharge fees.
 
     Business Rules:
-    - Visitors with 3 or more visits in a month incur a 5% surcharge
+    - Individual visitors with 3 or more visits in a month incur a 5% surcharge
+    - Business visitors are exempt from the monthly surcharge
     - Surcharge applies to all visits in that month
     - Surcharge is calculated on the total price of each visit
     """
@@ -24,13 +26,17 @@ class MonthlySurchargeService:
     SURCHARGE_THRESHOLD = 3
     SURCHARGE_RATE = Decimal("0.05")  # 5%
 
-    def __init__(self, visit_repository: VisitRepository):
-        """Initialize with visit repository dependency.
+    def __init__(
+        self, visit_repository: VisitRepository, visitor_repository: VisitorRepository
+    ):
+        """Initialize with visit and visitor repository dependencies.
 
         Args:
             visit_repository: Repository for accessing visit data
+            visitor_repository: Repository for accessing visitor data
         """
         self._visit_repository = visit_repository
+        self._visitor_repository = visitor_repository
 
     def calculate_surcharge_for_visit(
         self,
@@ -150,12 +156,15 @@ class MonthlySurchargeService:
 
         final_total = total_base_price.add(total_surcharge)
 
+        # Check if surcharge was actually applied (based on visitor type and visit count)
+        surcharge_applied = len(visits) > 0 and self._should_apply_surcharge(visits[0])
+
         return {
             "visit_count": len(visits),
             "total_base_price": total_base_price,
             "total_surcharge": total_surcharge,
             "final_total": final_total,
-            "surcharge_applied": len(visits) >= self.SURCHARGE_THRESHOLD,
+            "surcharge_applied": surcharge_applied,
         }
 
     def _should_apply_surcharge(self, visit: Visit) -> bool:
@@ -165,8 +174,18 @@ class MonthlySurchargeService:
             visit: The visit to check
 
         Returns:
-            True if surcharge should apply
+            True if surcharge should apply (individual visitors only)
         """
+        # Check if visitor is individual (private) - business customers are exempt
+        visitor = self._visitor_repository.find_by_id(visit.visitor_id)
+        if visitor is None:
+            # If visitor not found, default to no surcharge for safety
+            return False
+
+        # Only individual visitors get the monthly surcharge
+        if visitor.type != "individual":
+            return False
+
         year = Year(visit.date.year)
         month = Month(visit.date.month)
 

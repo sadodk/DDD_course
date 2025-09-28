@@ -6,6 +6,9 @@ from domain.services.monthly_surcharge_service import MonthlySurchargeService
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )
+from infrastructure.repositories.in_memory_visitor_repository import (
+    InMemoryVisitorRepository,
+)
 
 
 class ApplicationContext:
@@ -18,13 +21,19 @@ class ApplicationContext:
 
         # Repositories (in-memory for workshop)
         self.visit_repository = InMemoryVisitRepository()
+        self.visitor_repository = InMemoryVisitorRepository()
 
         # Domain services
-        self.surcharge_service = MonthlySurchargeService(self.visit_repository)
+        self.surcharge_service = MonthlySurchargeService(
+            self.visit_repository, self.visitor_repository
+        )
 
         # Application services
         self.price_calculator = PriceCalculator(
-            self.visitor_service, self.surcharge_service, self.visit_repository
+            self.visitor_service,
+            self.surcharge_service,
+            self.visit_repository,
+            self.visitor_repository,
         )
 
     def reset_for_new_scenario(self):

@@ -5,9 +5,11 @@ from datetime import datetime
 from typing import Dict, Any
 
 from domain.entities.visit import Visit
+from domain.entities.visitor import Visitor
 from domain.services.monthly_surcharge_service import MonthlySurchargeService
 from domain.repositories.visit_repository import VisitRepository
-from domain.types import PersonId, VisitId
+from domain.repositories.visitor_repository import VisitorRepository
+from domain.types import PersonId, VisitId, CardId, EmailAddress
 from domain.dropped_fraction import DroppedFraction, FractionType
 from domain.weight import Weight
 from application.external_visitor_service import ExternalVisitorService
@@ -35,10 +37,12 @@ class PriceCalculator:
         visitor_service: ExternalVisitorService,
         surcharge_service: MonthlySurchargeService,
         visit_repository: VisitRepository,
+        visitor_repository: VisitorRepository,
     ):
         self._visitor_service = visitor_service
         self._surcharge_service = surcharge_service
         self._visit_repository = visit_repository
+        self._visitor_repository = visitor_repository
 
     def calculate_price(self, visit_data: Dict[str, Any]) -> PriceResponse:
         """Calculate price for a visit.
@@ -56,6 +60,20 @@ class PriceCalculator:
         visitor_info = self._visitor_service.get_visitor_by_id(visit_data["person_id"])
         visitor_city = visitor_info.city if visitor_info else None
         customer_type = visitor_info.type if visitor_info else None
+
+        # Save visitor information to repository if found and not already exists
+        if visitor_info and not self._visitor_repository.exists(
+            PersonId(visitor_info.id)
+        ):
+            visitor_entity = Visitor(
+                id=PersonId(visitor_info.id),
+                type=visitor_info.type,
+                address=visitor_info.address,
+                city=visitor_info.city,
+                card_id=CardId(visitor_info.card_id),
+                email=EmailAddress(visitor_info.email),
+            )
+            self._visitor_repository.save(visitor_entity)
 
         # Save the visit so the surcharge service can see it
         self._visit_repository.save(visit)
