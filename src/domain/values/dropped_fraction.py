@@ -1,9 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable
-from datetime import datetime
-from domain.values.price import Price, Currency
 from domain.values.weight import Weight
 
 
@@ -36,51 +33,17 @@ class DroppedFraction:
         if not isinstance(self.weight, Weight):
             raise ValueError("weight is invalid")
 
-    def price(
-        self,
-        city: str | None = None,
-        customer_type: str | None = None,
-        visitor_id: str | None = None,
-        visit_date: datetime | None = None,
-    ) -> Price:
-        """Calculate price for this dropped fraction based on city and customer type.
+    @staticmethod
+    def from_string(fraction_type_str: str, weight_amount: int) -> DroppedFraction:
+        """Create a DroppedFraction from string inputs.
 
         Args:
-            city: The city for city-specific pricing
-            customer_type: The customer type ('individual' for private, 'business' for business)
-            visitor_id: The unique identifier for the visitor (needed for exemption tracking)
-            visit_date: The date of the visit (needed for calendar year exemptions)
+            fraction_type_str: String representation of fraction type
+            weight_amount: Weight amount in kg (integer)
 
         Returns:
-            Price for this dropped fraction
+            DroppedFraction instance
         """
-        # Import here to avoid circular dependencies
-        from domain.business_rules.pricing_rule_engine import PricingRuleEngine
-        from domain.business_rules.interface_pricing_rules import PricingContext
-
-        # Create pricing context from parameters
-        context = PricingContext(
-            customer_type=customer_type,
-            city=city,
-            visitor_id=visitor_id,
-            visit_date=visit_date,
-        )
-
-        # Use pricing rule engine to calculate price
-        engine = PricingRuleEngine()
-        return engine.calculate_price(self, context)
-
-    @staticmethod
-    def sum(
-        dropped_fractions: Iterable[DroppedFraction],
-        city: str | None = None,
-        customer_type: str | None = None,
-        visitor_id: str | None = None,
-        visit_date: datetime | None = None,
-    ) -> Price:
-        total_price = Price(0, Currency.EUR)
-        for fraction in dropped_fractions:
-            total_price = total_price.add(
-                fraction.price(city, customer_type, visitor_id, visit_date)
-            )
-        return total_price
+        fraction_type = FractionType.from_string(fraction_type_str)
+        weight = Weight(weight_amount)
+        return DroppedFraction(fraction_type, weight)

@@ -57,7 +57,7 @@ class Visit:
     ) -> Price:
         """
         Calculate the base price for this visit based on dropped fractions.
-        Delegates to domain value objects
+        Uses domain pricing service for proper business rule application.
 
         Args:
             visitor_city: The city of the visitor for city-specific pricing
@@ -66,7 +66,10 @@ class Visit:
         Returns:
             The calculated base price before any surcharges
         """
-        return DroppedFraction.sum(
+        from domain.services.pricing_service import PricingService
+
+        pricing_service = PricingService()
+        return pricing_service.calculate_total_price(
             self.dropped_fractions,
             visitor_city,
             customer_type,
