@@ -1,4 +1,4 @@
-from domain.services.monthly_visit_tracker_service import MonthlyVisitTracker
+from domain.services.monthly_visit_tracker import MonthlyVisitTracker
 from domain.values.price import Price, Currency
 
 

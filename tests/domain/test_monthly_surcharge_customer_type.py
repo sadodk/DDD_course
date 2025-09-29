@@ -1,7 +1,7 @@
 """Tests for customer type specific monthly surcharge rules."""
 
 from datetime import datetime
-from domain.services.monthly_surcharge_service import MonthlySurchargeService
+from domain.services.monthly_surcharge import MonthlySurchargeService
 from domain.entities.visit import Visit
 from domain.entities.visitor import Visitor
 from domain.repositories.visit_repository import VisitRepository

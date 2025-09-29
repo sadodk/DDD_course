@@ -2,8 +2,8 @@
 
 from application.external_visitor_service import ExternalVisitorService
 from application.price_calculator import PriceCalculator
-from domain.services.monthly_surcharge_service import MonthlySurchargeService
-from domain.services.construction_waste_exemption_service import (
+from domain.services.monthly_surcharge import MonthlySurchargeService
+from domain.services.construction_waste_exemption import (
     ConstructionWasteExemptionService,
 )
 from infrastructure.repositories.in_memory_visit_repository import (

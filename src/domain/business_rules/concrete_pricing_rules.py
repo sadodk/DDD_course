@@ -4,7 +4,7 @@ from typing import Optional
 from domain.business_rules.interface_pricing_rules import PricingRule, PricingContext
 from domain.values.dropped_fraction import DroppedFraction, FractionType
 from domain.values.price import Price, Currency
-from domain.services.construction_waste_exemption_service import (
+from domain.services.construction_waste_exemption import (
     ConstructionWasteExemptionService,
 )
 

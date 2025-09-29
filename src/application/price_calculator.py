@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 from domain.entities.visit import Visit
 from domain.entities.visitor import Visitor
-from domain.services.monthly_surcharge_service import MonthlySurchargeService
+from domain.services.monthly_surcharge import MonthlySurchargeService
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import PersonId, VisitId, CardId, EmailAddress

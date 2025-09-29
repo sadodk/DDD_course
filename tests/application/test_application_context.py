@@ -2,7 +2,7 @@
 
 from application.application_context import ApplicationContext
 from application.price_calculator import PriceCalculator
-from domain.services.monthly_surcharge_service import MonthlySurchargeService
+from domain.services.monthly_surcharge import MonthlySurchargeService
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )
