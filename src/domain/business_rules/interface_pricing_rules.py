@@ -5,10 +5,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
-from domain.price import Price
+from domain.values.price import Price
 
 if TYPE_CHECKING:
-    from domain.dropped_fraction import DroppedFraction
+    from domain.values.dropped_fraction import DroppedFraction
 
 
 @dataclass(frozen=True)

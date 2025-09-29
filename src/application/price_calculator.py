@@ -10,8 +10,8 @@ from domain.services.monthly_surcharge_service import MonthlySurchargeService
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import PersonId, VisitId, CardId, EmailAddress
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.weight import Weight
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.weight import Weight
 from application.external_visitor_service import ExternalVisitorService
 
 

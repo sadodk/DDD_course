@@ -7,9 +7,9 @@ from domain.entities.visitor import Visitor
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import VisitId, PersonId, Year, Month, CardId, EmailAddress
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.weight import Weight
-from domain.price import Currency
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.weight import Weight
+from domain.values.price import Currency
 
 
 class MockVisitRepository(VisitRepository):

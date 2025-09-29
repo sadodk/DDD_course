@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable
 from datetime import datetime
-from domain.price import Price, Currency
-from domain.weight import Weight
+from domain.values.price import Price, Currency
+from domain.values.weight import Weight
 
 
 class FractionType(Enum):

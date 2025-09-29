@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Set
-from domain.price import Price
+from domain.values.price import Price
 from domain.types import PersonId, VisitId, Year, Month
 
 

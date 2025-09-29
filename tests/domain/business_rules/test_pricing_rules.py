@@ -6,9 +6,9 @@ from domain.business_rules.concrete_pricing_rules import (
     DefaultPricingRule,
 )
 from domain.business_rules.pricing_rule_engine import PricingRuleEngine
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.weight import Weight
-from domain.price import Price, Currency
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.weight import Weight
+from domain.values.price import Price, Currency
 
 
 class TestPricingContext:

@@ -10,7 +10,7 @@ from domain.entities.visit import Visit
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import PersonId, Year, Month
-from domain.price import Price, Currency
+from domain.values.price import Price, Currency
 
 
 class MonthlySurchargeService:

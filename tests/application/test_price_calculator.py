@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from application.price_calculator import PriceCalculator, PriceResponse
 from application.external_visitor_service import VisitorInfo
-from domain.price import Price, Currency
+from domain.values.price import Price, Currency
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )

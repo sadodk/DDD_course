@@ -1,4 +1,4 @@
-from domain.price import Price, Currency
+from domain.values.price import Price, Currency
 import pytest
 
 

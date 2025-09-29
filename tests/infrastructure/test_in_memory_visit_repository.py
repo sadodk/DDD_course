@@ -6,8 +6,8 @@ from infrastructure.repositories.in_memory_visit_repository import (
 )
 from domain.entities.visit import Visit
 from domain.types import VisitId, PersonId, Year, Month
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.weight import Weight
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.weight import Weight
 
 
 class TestInMemoryVisitRepository:

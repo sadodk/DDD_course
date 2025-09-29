@@ -1,5 +1,5 @@
-from domain.monthly_visit_tracker import MonthlyVisitTracker
-from domain.price import Price, Currency
+from domain.services.monthly_visit_tracker_service import MonthlyVisitTracker
+from domain.values.price import Price, Currency
 
 
 class TestMonthlyVisitTracker:

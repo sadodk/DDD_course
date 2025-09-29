@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import requests
-from domain.monthly_visit_tracker import MonthlyVisitTracker
+from domain.services.monthly_visit_tracker import MonthlyVisitTracker
 
 
 @dataclass

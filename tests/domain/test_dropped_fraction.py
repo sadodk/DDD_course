@@ -1,7 +1,7 @@
 import pytest
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.price import Currency, Price
-from domain.weight import Weight
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.price import Currency, Price
+from domain.values.weight import Weight
 
 
 def test_parse_fraction_type() -> None:

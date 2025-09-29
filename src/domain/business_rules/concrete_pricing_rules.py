@@ -2,9 +2,9 @@
 
 from typing import Optional
 from domain.business_rules.interface_pricing_rules import PricingRule, PricingContext
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.price import Price, Currency
-from domain.construction_waste_exemption_service import (
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.price import Price, Currency
+from domain.services.construction_waste_exemption_service import (
     ConstructionWasteExemptionService,
 )
 
@@ -184,7 +184,7 @@ class DefaultPricingRule(PricingRule):
         fraction_name = str(fraction.fraction_type)
         rate = self.DEFAULT_RATES.get(fraction_name, 0.0)
 
-        from domain.price import Currency
+        from domain.values.price import Currency
 
         return Price(rate, Currency.EUR).times(fraction.weight.weight)
 

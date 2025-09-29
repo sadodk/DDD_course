@@ -4,9 +4,9 @@ import pytest
 from datetime import datetime
 from domain.entities.visit import Visit
 from domain.types import VisitId, PersonId
-from domain.dropped_fraction import DroppedFraction, FractionType
-from domain.weight import Weight
-from domain.price import Currency
+from domain.values.dropped_fraction import DroppedFraction, FractionType
+from domain.values.weight import Weight
+from domain.values.price import Currency
 
 
 class TestVisitEntity:

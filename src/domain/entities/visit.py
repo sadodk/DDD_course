@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 from domain.types import VisitId, PersonId
-from domain.dropped_fraction import DroppedFraction
-from domain.price import Price
+from domain.values.dropped_fraction import DroppedFraction
+from domain.values.price import Price
 
 
 @dataclass
