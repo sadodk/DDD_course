@@ -67,7 +67,8 @@ class PricingRuleEngine:
         if applicable_rule is None:
             raise ValueError("No applicable pricing rule found")
 
-        return applicable_rule.calculate_price(fraction, context)
+        result = applicable_rule.calculate_price(fraction, context)
+        return result
 
     def _find_applicable_rule(self, context: PricingContext) -> Optional[PricingRule]:
         """Find the first applicable rule for the given context.
@@ -108,3 +109,32 @@ class PricingRuleEngine:
             List of applicable rules in priority order
         """
         return [rule for rule in self._rules if rule.can_apply(context)]
+
+    def apply_post_processing(
+        self, base_price: Price, context: PricingContext
+    ) -> Price:
+        """Apply post-processing rules like surcharges to a base price.
+
+        This method finds all applicable rules that implement calculate_surcharge_for_base_price
+        and applies them to the base price.
+
+        Args:
+            base_price: The base price to post-process
+            context: The pricing context
+
+        Returns:
+            Final price after applying all post-processing rules
+        """
+        final_price = base_price
+
+        # Apply post-processing for rules that support it
+        for rule in (
+            self._rules
+        ):  # Check ALL rules, not just applicable ones for post-processing
+            if hasattr(rule, "calculate_surcharge_for_base_price"):
+                # Use getattr to safely access the dynamic method
+                surcharge_method = getattr(rule, "calculate_surcharge_for_base_price")
+                surcharge = surcharge_method(base_price, context)
+                final_price = final_price.add(surcharge)
+
+        return final_price

@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 from domain.entities.visit import Visit
 from domain.entities.visitor import Visitor
-from domain.services.monthly_surcharge import MonthlySurchargeService
+from domain.services.pricing_service import PricingService
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import PersonId, VisitId, CardId, EmailAddress
@@ -35,12 +35,12 @@ class PriceCalculator:
     def __init__(
         self,
         visitor_service: ExternalVisitorService,
-        surcharge_service: MonthlySurchargeService,
+        pricing_service: PricingService,
         visit_repository: VisitRepository,
         visitor_repository: VisitorRepository,
     ):
         self._visitor_service = visitor_service
-        self._surcharge_service = surcharge_service
+        self._pricing_service = pricing_service
         self._visit_repository = visit_repository
         self._visitor_repository = visitor_repository
 
@@ -75,12 +75,16 @@ class PriceCalculator:
             )
             self._visitor_repository.save(visitor_entity)
 
-        # Save the visit so the surcharge service can see it
+        # Save the visit so the pricing service can see it for surcharge calculations
         self._visit_repository.save(visit)
 
-        # Calculate total price using domain service, passing visitor city and type
-        total_price = self._surcharge_service.calculate_total_price_with_surcharge(
-            visit, visitor_city, customer_type
+        # Calculate total price using pricing service with rules engine (includes surcharges)
+        total_price = self._pricing_service.calculate_total_price(
+            visit.dropped_fractions,
+            city=visitor_city,
+            customer_type=customer_type,
+            visitor_id=str(visit.visitor_id),
+            visit_date=visit.date,
         )
 
         return PriceResponse(

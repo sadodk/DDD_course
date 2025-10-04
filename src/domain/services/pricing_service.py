@@ -60,7 +60,7 @@ class PricingService:
         visitor_id: Optional[str] = None,
         visit_date: Optional[datetime] = None,
     ) -> Price:
-        """Calculate total price for multiple dropped fractions.
+        """Calculate total price for multiple dropped fractions including surcharges.
 
         Args:
             fractions: List of dropped fractions to price
@@ -70,14 +70,25 @@ class PricingService:
             visit_date: The date of the visit (needed for calendar year exemptions)
 
         Returns:
-            Total price for all dropped fractions
+            Total price for all dropped fractions including any surcharges
         """
-        total_price = Price(0, Currency.EUR)
-
+        # First calculate the base price of all fractions
+        base_price = Price(0, Currency.EUR)
         for fraction in fractions:
             fraction_price = self.calculate_price(
                 fraction, city, customer_type, visitor_id, visit_date
             )
-            total_price = total_price.add(fraction_price)
+            base_price = base_price.add(fraction_price)
 
-        return total_price
+        # Create context for post-processing (surcharges, etc.)
+        context = PricingContext(
+            customer_type=customer_type,
+            city=city,
+            visitor_id=visitor_id,
+            visit_date=visit_date,
+        )
+
+        # Apply any post-processing rules (like surcharges)
+        final_price = self._pricing_engine.apply_post_processing(base_price, context)
+
+        return final_price

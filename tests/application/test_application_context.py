@@ -2,7 +2,6 @@
 
 from application.application_context import ApplicationContext
 from application.price_calculator import PriceCalculator
-from domain.services.monthly_surcharge import MonthlySurchargeService
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )
@@ -21,12 +20,11 @@ class TestApplicationContext:
         assert hasattr(self.context, "price_calculator")
         assert hasattr(self.context, "visitor_service")
         assert hasattr(self.context, "visit_repository")
-        assert hasattr(self.context, "surcharge_service")
+        assert hasattr(self.context, "pricing_service")
 
         # Check types
         assert isinstance(self.context.price_calculator, PriceCalculator)
         assert isinstance(self.context.visit_repository, InMemoryVisitRepository)
-        assert isinstance(self.context.surcharge_service, MonthlySurchargeService)
 
     def test_reset_for_new_scenario(self):
         """Test scenario reset functionality."""

@@ -2,7 +2,9 @@
 
 from application.external_visitor_service import ExternalVisitorService
 from application.price_calculator import PriceCalculator
-from domain.services.monthly_surcharge import MonthlySurchargeService
+from domain.business_rules.pricing_rule_engine import PricingRuleEngine
+from domain.business_rules.concrete_pricing_rules import MonthlySurchargePricingRule
+from domain.services.pricing_service import PricingService
 from domain.services.construction_waste_exemption import (
     ConstructionWasteExemptionService,
 )
@@ -26,15 +28,22 @@ class ApplicationContext:
         self.visit_repository = InMemoryVisitRepository()
         self.visitor_repository = InMemoryVisitorRepository()
 
-        # Domain services
-        self.surcharge_service = MonthlySurchargeService(
+        # Set up pricing rules and engine
+        pricing_engine = PricingRuleEngine()  # Creates with default pricing rules
+
+        # Add monthly surcharge rule to the engine
+        monthly_surcharge_rule = MonthlySurchargePricingRule(
             self.visit_repository, self.visitor_repository
         )
+        pricing_engine.add_rule(monthly_surcharge_rule)
+
+        # Domain services
+        self.pricing_service = PricingService(pricing_engine=pricing_engine)
 
         # Application services
         self.price_calculator = PriceCalculator(
             self.visitor_service,
-            self.surcharge_service,
+            self.pricing_service,
             self.visit_repository,
             self.visitor_repository,
         )

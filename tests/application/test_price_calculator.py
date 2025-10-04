@@ -19,13 +19,13 @@ class TestPriceCalculator:
     def setup_method(self):
         """Set up test fixtures."""
         self.visitor_service = Mock()
-        self.surcharge_service = Mock()
+        self.pricing_service = Mock()
         self.visit_repository = InMemoryVisitRepository()
         self.visitor_repository = InMemoryVisitorRepository()
 
         self.calculator = PriceCalculator(
             self.visitor_service,
-            self.surcharge_service,
+            self.pricing_service,
             self.visit_repository,
             self.visitor_repository,
         )
@@ -45,11 +45,9 @@ class TestPriceCalculator:
         # Mock external visitor service
         self.visitor_service.get_visitor_by_id.return_value = self.mock_visitor
 
-        # Mock surcharge service
+        # Mock pricing service
         expected_price = Price(12.50, Currency.EUR)
-        self.surcharge_service.calculate_total_price_with_surcharge.return_value = (
-            expected_price
-        )
+        self.pricing_service.calculate_total_price.return_value = expected_price
 
         # Test data
         visit_data = {

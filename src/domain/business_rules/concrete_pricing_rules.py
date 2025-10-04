@@ -1,5 +1,6 @@
 """Concrete pricing rules for specific business scenarios."""
 
+from decimal import Decimal
 from typing import Optional
 from domain.business_rules.interface_pricing_rules import PricingRule, PricingContext
 from domain.values.dropped_fraction import DroppedFraction, FractionType
@@ -7,6 +8,9 @@ from domain.values.price import Price, Currency
 from domain.services.construction_waste_exemption import (
     ConstructionWasteExemptionService,
 )
+from domain.repositories.visit_repository import VisitRepository
+from domain.repositories.visitor_repository import VisitorRepository
+from domain.types import PersonId, Year, Month
 
 
 class OakCityBusinessConstructionExemptionRule(PricingRule):
@@ -184,10 +188,104 @@ class DefaultPricingRule(PricingRule):
         fraction_name = str(fraction.fraction_type)
         rate = self.DEFAULT_RATES.get(fraction_name, 0.0)
 
-        from domain.values.price import Currency
-
-        return Price(rate, Currency.EUR).times(fraction.weight.weight)
+        # Calculate price based on weight and rate
+        amount = rate * fraction.weight.weight
+        return Price(amount, Currency.EUR)
 
     def get_priority(self) -> int:
         """Lowest priority - used as fallback."""
         return 1000
+
+
+class MonthlySurchargePricingRule(PricingRule):
+    """Pricing rule for monthly surcharge based on visit frequency.
+
+    Business Rules:
+    - Individual visitors with 3 or more visits in a month incur a 5% surcharge
+    - Business visitors are exempt from the monthly surcharge
+    - Surcharge applies to the base price of a visit
+
+    Note: This is a post-processing rule that operates on the total visit price,
+    not individual fractions. It uses the pricing rule engine's post-processing capability.
+    """
+
+    SURCHARGE_THRESHOLD = 3
+    SURCHARGE_RATE = Decimal("0.05")  # 5%
+
+    def __init__(
+        self, visit_repository: VisitRepository, visitor_repository: VisitorRepository
+    ):
+        """Initialize with visit and visitor repository dependencies.
+
+        Args:
+            visit_repository: Repository for accessing visit data
+            visitor_repository: Repository for accessing visitor data
+        """
+        self._visit_repository = visit_repository
+        self._visitor_repository = visitor_repository
+
+    def can_apply(self, context: PricingContext) -> bool:
+        """This rule should NOT apply for base price calculations, only for surcharges.
+
+        The rule implements calculate_surcharge_for_base_price which is called by
+        apply_post_processing, but shouldn't be selected for base price calculations.
+        """
+        # For base price calculation, always return False
+        # This rule should only be used for post-processing surcharges
+        return False
+
+    def calculate_price(
+        self, fraction: DroppedFraction, context: PricingContext
+    ) -> Price:
+        """For MonthlySurchargePricingRule, this method returns a zero price.
+
+        The actual surcharge calculation is done at the visit level through
+        calculate_surcharge_for_base_price.
+        """
+        # This rule doesn't calculate price per fraction - it applies surcharge at visit level
+        return Price(0, Currency.EUR)
+
+    def calculate_surcharge_for_base_price(
+        self, base_price: Price, context: PricingContext
+    ) -> Price:
+        """Calculate surcharge based on monthly visit frequency.
+
+        Args:
+            base_price: The base price to apply surcharge to
+            context: The pricing context with visitor ID and visit date
+
+        Returns:
+            Price object with surcharge amount (0 if no surcharge applies)
+        """
+        # Check if this rule applies to the surcharge calculation
+        # For surcharges, use different logic than can_apply (which is for base price)
+        should_apply_surcharge = (
+            context.is_individual_customer()
+            and context.visitor_id is not None
+            and context.visit_date is not None
+        )
+
+        if not should_apply_surcharge:
+            return Price(0, Currency.EUR)
+
+        # Check if visitor meets surcharge threshold (3+ visits in month)
+        # We've already checked above that visitor_id and visit_date are not None
+        visitor_id = PersonId(context.visitor_id)  # type: ignore
+        assert context.visit_date is not None  # For type checking
+        visit_count = self._visit_repository.count_visits_for_person_in_month(
+            visitor_id,
+            Year(context.visit_date.year),
+            Month(context.visit_date.month),
+        )
+
+        if visit_count >= self.SURCHARGE_THRESHOLD:
+            surcharge_amount = float(
+                Decimal(str(base_price.amount)) * self.SURCHARGE_RATE
+            )
+            return Price(surcharge_amount, base_price.currency)
+        else:
+            return Price(0, base_price.currency)
+
+    def get_priority(self) -> int:
+        """Priority for post-processing rules - run after base price calculations."""
+        return 200

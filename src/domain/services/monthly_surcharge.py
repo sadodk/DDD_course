@@ -2,8 +2,56 @@
 
 This domain service encapsulates the business logic for calculating
 monthly surcharge fees based on visit frequency.
+
+DEPRECATED: This service is deprecated in favor of MonthlySurchargePricingRule.
+Use PricingService with MonthlySurchargePricingRule instead.
+
+Migration Guide:
+--------------
+
+1. Instead of using MonthlySurchargeService directly:
+
+   # Old approach (deprecated)
+   from domain.services.monthly_surcharge import MonthlySurchargeService
+   surcharge_service = MonthlySurchargeService(visit_repository, visitor_repository)
+   total_price = surcharge_service.calculate_total_price_with_surcharge(visit, city, customer_type)
+
+2. Use PricingService with MonthlySurchargePricingRule:
+
+   # New approach (preferred)
+   from domain.business_rules.pricing_rule_engine import PricingRuleEngine
+   from domain.business_rules.concrete_pricing_rules import MonthlySurchargePricingRule
+   from domain.services.pricing_service import PricingService
+
+   # Set up the rule engine with the monthly surcharge rule
+   pricing_engine = PricingRuleEngine()
+   monthly_surcharge_rule = MonthlySurchargePricingRule(visit_repository, visitor_repository)
+   pricing_engine.add_rule(monthly_surcharge_rule)
+
+   # Create the pricing service
+   pricing_service = PricingService(pricing_engine=pricing_engine)
+
+   # Calculate total price including surcharges
+   total_price = pricing_service.calculate_total_price(
+       visit.dropped_fractions,
+       city=city,
+       customer_type=customer_type,
+       visitor_id=str(visit.visitor_id),
+       visit_date=visit.date
+   )
+
+3. For the ApplicationContext, ensure the rule is added to the pricing engine:
+
+   # In application_context.py
+   pricing_engine = PricingRuleEngine()
+   monthly_surcharge_rule = MonthlySurchargePricingRule(
+       self.visit_repository, self.visitor_repository
+   )
+   pricing_engine.add_rule(monthly_surcharge_rule)
+   self.pricing_service = PricingService(pricing_engine=pricing_engine)
 """
 
+import warnings
 from decimal import Decimal
 from typing import Optional
 from domain.entities.visit import Visit
@@ -15,6 +63,9 @@ from domain.values.price import Price, Currency
 
 class MonthlySurchargeService:
     """Domain service for calculating monthly surcharge fees.
+
+    DEPRECATED: This service is deprecated. Use PricingService with
+    MonthlySurchargePricingRule instead.
 
     Business Rules:
     - Individual visitors with 3 or more visits in a month incur a 5% surcharge
@@ -35,6 +86,12 @@ class MonthlySurchargeService:
             visit_repository: Repository for accessing visit data
             visitor_repository: Repository for accessing visitor data
         """
+        warnings.warn(
+            "MonthlySurchargeService is deprecated. "
+            "Use PricingService with MonthlySurchargePricingRule instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._visit_repository = visit_repository
         self._visitor_repository = visitor_repository
 
