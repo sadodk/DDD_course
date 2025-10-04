@@ -1,46 +1,21 @@
-"""Construction waste exemption tracking service for Oak City business customers.
+"""In-memory implementation of the exemption repository."""
 
-This service tracks the cumulative construction waste dropped by business customers
-in Oak City throughout a calendar year. It maintains exemption state that resets
-annually and supports the tiered pricing structure where the first 1000kg is
-charged at a lower rate.
-"""
-
-from typing import Dict, Tuple
 from datetime import datetime
+from typing import Dict, Tuple
+
+from domain.repositories.exemption_repository import ExemptionRepository
 
 
-class ConstructionWasteExemptionService:
-    """Domain service for tracking construction waste exemptions.
+class InMemoryExemptionRepository(ExemptionRepository):
+    """In-memory implementation of the exemption repository.
 
-    Tracks cumulative construction waste per business customer per calendar year.
-    Exemptions reset automatically at the start of each calendar year.
-
-    This service uses a singleton pattern to ensure exemption state is shared
-    across all pricing calculations.
+    Stores exemption data in a dictionary keyed by (visitor_id, year).
     """
 
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._exemption_usage = {}
-            cls._instance._initialized = False
-        return cls._instance
-
     def __init__(self):
-        """Initialize the exemption service with empty tracking."""
-        # Only initialize once (singleton pattern)
-        if not self._initialized:
-            # Key: (visitor_id, year) -> cumulative_weight_kg
-            self._exemption_usage: Dict[Tuple[str, int], float] = {}
-            self._initialized = True
-
-    @classmethod
-    def reset_singleton(cls):
-        """Reset the singleton instance - useful for testing."""
-        cls._instance = None
+        """Initialize with an empty tracking dictionary."""
+        # Key: (visitor_id, year) -> cumulative_weight_kg
+        self._exemption_usage: Dict[Tuple[str, int], float] = {}
 
     def get_used_exemption(self, visitor_id: str, year: int) -> float:
         """Get the amount of exemption already used by a visitor in a given year.
@@ -54,7 +29,7 @@ class ConstructionWasteExemptionService:
         """
         return self._exemption_usage.get((visitor_id, year), 0.0)
 
-    def record_construction_waste(
+    def record_waste(
         self, visitor_id: str, weight_kg: float, visit_date: datetime
     ) -> None:
         """Record construction waste dropped by a visitor.
@@ -72,30 +47,32 @@ class ConstructionWasteExemptionService:
         current_usage = self._exemption_usage.get(key, 0.0)
         self._exemption_usage[key] = current_usage + weight_kg
 
-    def calculate_tiered_pricing(
-        self, visitor_id: str, weight_kg: float, visit_date: datetime
+    def calculate_tiered_weights(
+        self,
+        visitor_id: str,
+        weight_kg: float,
+        visit_date: datetime,
+        tier_limit_kg: float = 1000.0,
     ) -> Tuple[float, float]:
-        """Calculate tiered pricing amounts for construction waste.
+        """Calculate tiered weight amounts for construction waste.
 
-        Returns the weight amounts for low-rate (≤1000kg) and high-rate (>1000kg)
+        Returns the weight amounts for low-rate (≤tier_limit_kg) and high-rate (>tier_limit_kg)
         pricing tiers, taking into account previous exemption usage.
 
         Args:
             visitor_id: The unique identifier for the visitor
             weight_kg: The weight of construction waste for this visit
             visit_date: The date of the visit
+            tier_limit_kg: The limit for the lower tier pricing (default: 1000.0 kg)
 
         Returns:
-            Tuple of (low_rate_weight_kg, high_rate_weight_kg)
+            Tuple of (low_tier_weight_kg, high_tier_weight_kg)
         """
         year = visit_date.year
         already_used = self.get_used_exemption(visitor_id, year)
 
-        # Constants
-        EXEMPTION_LIMIT_KG = 1000.0
-
         # Calculate how much exemption is still available
-        remaining_exemption = max(0.0, EXEMPTION_LIMIT_KG - already_used)
+        remaining_exemption = max(0.0, tier_limit_kg - already_used)
 
         # Apply exemption to current visit
         low_rate_weight = min(weight_kg, remaining_exemption)

@@ -9,8 +9,8 @@ from domain.business_rules.interface_pricing_rules import PricingContext
 from domain.values.dropped_fraction import DroppedFraction, FractionType
 from domain.values.weight import Weight
 from domain.values.price import Price, Currency
-from domain.services.construction_waste_exemption import (
-    ConstructionWasteExemptionService,
+from infrastructure.repositories.in_memory_exemption_repository import (
+    InMemoryExemptionRepository,
 )
 
 
@@ -19,15 +19,14 @@ class TestOakCityBusinessConstructionExemptionRule(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        # Reset singleton to ensure test isolation
-        ConstructionWasteExemptionService.reset_singleton()
-        self.exemption_service = ConstructionWasteExemptionService()
-        self.rule = OakCityBusinessConstructionExemptionRule(self.exemption_service)
+        # Create a fresh repository for each test
+        self.exemption_repository = InMemoryExemptionRepository()
+        self.rule = OakCityBusinessConstructionExemptionRule(self.exemption_repository)
 
     def tearDown(self):
         """Clean up after each test."""
-        # Reset singleton after each test to ensure isolation
-        ConstructionWasteExemptionService.reset_singleton()
+        # Clear repository after each test
+        self.exemption_repository.clear_all_exemptions()
 
     def test_can_apply_oak_city_business_with_required_fields(self):
         """Rule should apply to Oak City business customers with visitor_id and visit_date."""
@@ -228,31 +227,30 @@ class TestOakCityBusinessConstructionExemptionRule(unittest.TestCase):
         self.assertIn("visitor_id and visit_date are required", str(cm.exception))
 
 
-class TestConstructionWasteExemptionService(unittest.TestCase):
-    """Test the construction waste exemption service."""
+class TestExemptionRepository(unittest.TestCase):
+    """Test the exemption repository."""
 
     def setUp(self):
         """Set up test fixtures."""
-        # Reset singleton to ensure test isolation
-        ConstructionWasteExemptionService.reset_singleton()
-        self.service = ConstructionWasteExemptionService()
+        # Create a fresh repository for each test
+        self.exemption_repository = InMemoryExemptionRepository()
 
     def tearDown(self):
         """Clean up after each test."""
-        # Reset singleton after each test to ensure isolation
-        ConstructionWasteExemptionService.reset_singleton()
+        # Clear repository after each test
+        self.exemption_repository.clear_all_exemptions()
 
     def test_get_used_exemption_no_prior_usage(self):
         """Test getting exemption usage with no prior usage."""
-        usage = self.service.get_used_exemption("visitor1", 2025)
-        self.assertEqual(usage, 0.0)
+        usage = self.exemption_repository.get_used_exemption("visitor1", 2025)
+        self.assertEqual(usage, 0)
 
     def test_record_and_get_construction_waste(self):
         """Test recording and retrieving construction waste usage."""
         visit_date = datetime(2025, 9, 28)
-        self.service.record_construction_waste("visitor1", 600.0, visit_date)
+        self.exemption_repository.record_waste("visitor1", 600, visit_date)
 
-        usage = self.service.get_used_exemption("visitor1", 2025)
+        usage = self.exemption_repository.get_used_exemption("visitor1", 2025)
         self.assertEqual(usage, 600.0)
 
     def test_cumulative_construction_waste_same_year(self):
@@ -260,17 +258,17 @@ class TestConstructionWasteExemptionService(unittest.TestCase):
         visit_date1 = datetime(2025, 3, 15)
         visit_date2 = datetime(2025, 9, 28)
 
-        self.service.record_construction_waste("visitor1", 400.0, visit_date1)
-        self.service.record_construction_waste("visitor1", 300.0, visit_date2)
+        self.exemption_repository.record_waste("visitor1", 400, visit_date1)
+        self.exemption_repository.record_waste("visitor1", 300, visit_date2)
 
-        usage = self.service.get_used_exemption("visitor1", 2025)
+        usage = self.exemption_repository.get_used_exemption("visitor1", 2025)
         self.assertEqual(usage, 700.0)
 
     def test_calculate_tiered_pricing_within_limit(self):
         """Test tiered pricing calculation when fully within exemption limit."""
         visit_date = datetime(2025, 9, 28)
-        low_rate, high_rate = self.service.calculate_tiered_pricing(
-            "visitor1", 600.0, visit_date
+        low_rate, high_rate = self.exemption_repository.calculate_tiered_weights(
+            "visitor1", 600, visit_date, 1000
         )
 
         self.assertEqual(low_rate, 600.0)
@@ -279,8 +277,8 @@ class TestConstructionWasteExemptionService(unittest.TestCase):
     def test_calculate_tiered_pricing_exceeding_limit(self):
         """Test tiered pricing calculation when exceeding exemption limit."""
         visit_date = datetime(2025, 9, 28)
-        low_rate, high_rate = self.service.calculate_tiered_pricing(
-            "visitor1", 1500.0, visit_date
+        low_rate, high_rate = self.exemption_repository.calculate_tiered_weights(
+            "visitor1", 1500, visit_date, 1000
         )
 
         self.assertEqual(low_rate, 1000.0)  # Exemption limit
@@ -292,15 +290,15 @@ class TestConstructionWasteExemptionService(unittest.TestCase):
         visit_date2 = datetime(2025, 9, 28)
 
         # First visit uses 600kg of exemption
-        self.service.record_construction_waste("visitor1", 600.0, visit_date1)
+        self.exemption_repository.record_waste("visitor1", 600, visit_date1)
 
         # Second visit: 900kg (400kg exemption remaining, 500kg at high rate)
-        low_rate, high_rate = self.service.calculate_tiered_pricing(
-            "visitor1", 900.0, visit_date2
+        low_rate, high_rate = self.exemption_repository.calculate_tiered_weights(
+            "visitor1", 900, visit_date2, 1000
         )
 
-        self.assertEqual(low_rate, 400.0)  # Remaining exemption
-        self.assertEqual(high_rate, 500.0)  # Excess
+        self.assertEqual(low_rate, 400)  # Remaining exemption
+        self.assertEqual(high_rate, 500)  # Excess
 
     def test_separate_years_separate_exemptions(self):
         """Test that different years have separate exemption limits."""
@@ -308,42 +306,46 @@ class TestConstructionWasteExemptionService(unittest.TestCase):
         visit_date_2026 = datetime(2026, 1, 1)
 
         # Use exemption in 2025
-        self.service.record_construction_waste("visitor1", 1000.0, visit_date_2025)
+        self.exemption_repository.record_waste("visitor1", 1000, visit_date_2025)
 
         # 2026 should have fresh exemption
-        low_rate, high_rate = self.service.calculate_tiered_pricing(
-            "visitor1", 800.0, visit_date_2026
+        low_rate, high_rate = self.exemption_repository.calculate_tiered_weights(
+            "visitor1", 800, visit_date_2026, 1000
         )
 
-        self.assertEqual(low_rate, 800.0)  # Full exemption available
-        self.assertEqual(high_rate, 0.0)
+        self.assertEqual(low_rate, 800)  # Full exemption available
+        self.assertEqual(high_rate, 0)
 
     def test_different_visitors_separate_tracking(self):
         """Test that different visitors are tracked separately."""
         visit_date = datetime(2025, 9, 28)
 
         # Visitor 1 uses exemption
-        self.service.record_construction_waste("visitor1", 1000.0, visit_date)
+        self.exemption_repository.record_waste("visitor1", 1000, visit_date)
 
         # Visitor 2 should have full exemption
-        low_rate, high_rate = self.service.calculate_tiered_pricing(
-            "visitor2", 800.0, visit_date
+        low_rate, high_rate = self.exemption_repository.calculate_tiered_weights(
+            "visitor2", 800, visit_date, 1000
         )
 
-        self.assertEqual(low_rate, 800.0)
-        self.assertEqual(high_rate, 0.0)
+        self.assertEqual(low_rate, 800)
+        self.assertEqual(high_rate, 0)
 
     def test_clear_all_exemptions(self):
         """Test clearing all exemption data."""
         visit_date = datetime(2025, 9, 28)
-        self.service.record_construction_waste("visitor1", 600.0, visit_date)
+        self.exemption_repository.record_waste("visitor1", 600, visit_date)
 
         # Verify data exists
-        self.assertEqual(self.service.get_used_exemption("visitor1", 2025), 600.0)
+        self.assertEqual(
+            self.exemption_repository.get_used_exemption("visitor1", 2025), 600.0
+        )
 
         # Clear and verify
-        self.service.clear_all_exemptions()
-        self.assertEqual(self.service.get_used_exemption("visitor1", 2025), 0.0)
+        self.exemption_repository.clear_all_exemptions()
+        self.assertEqual(
+            self.exemption_repository.get_used_exemption("visitor1", 2025), 0.0
+        )
 
 
 if __name__ == "__main__":

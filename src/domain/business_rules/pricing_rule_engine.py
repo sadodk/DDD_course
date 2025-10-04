@@ -38,9 +38,13 @@ class PricingRuleEngine:
         self._rules.sort(key=lambda rule: rule.get_priority())
 
     def _get_default_rules(self) -> List[PricingRule]:
-        """Get the default set of pricing rules."""
+        """Get the default set of pricing rules.
+
+        Note: OakCityBusinessConstructionExemptionRule is not included in the default rules
+        because it requires an exemption service to be injected. It should be added
+        explicitly by the application after creation.
+        """
         return [
-            OakCityBusinessConstructionExemptionRule(),  # Uses singleton exemption service
             PinevillePricingRule(),
             OakCityPricingRule(),
             BusinessCustomerDiscountRule(),

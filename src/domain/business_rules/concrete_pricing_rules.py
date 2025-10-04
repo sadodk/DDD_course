@@ -1,13 +1,10 @@
 """Concrete pricing rules for specific business scenarios."""
 
 from decimal import Decimal
-from typing import Optional
 from domain.business_rules.interface_pricing_rules import PricingRule, PricingContext
 from domain.values.dropped_fraction import DroppedFraction, FractionType
 from domain.values.price import Price, Currency
-from domain.services.construction_waste_exemption import (
-    ConstructionWasteExemptionService,
-)
+from domain.repositories.exemption_repository import ExemptionRepository
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.types import PersonId, Year, Month
@@ -25,18 +22,15 @@ class OakCityBusinessConstructionExemptionRule(PricingRule):
 
     LOW_RATE = 0.21  # euro/kg for first 1000kg
     HIGH_RATE = 0.29  # euro/kg over 1000kg
+    EXEMPTION_LIMIT_KG = 1000.0  # Exemption limit in kg
 
-    def __init__(
-        self, exemption_service: Optional[ConstructionWasteExemptionService] = None
-    ):
-        """Initialize with an exemption tracking service.
+    def __init__(self, exemption_repository: ExemptionRepository):
+        """Initialize with an exemption repository.
 
         Args:
-            exemption_service: Service for tracking exemptions. If None, creates new instance.
+            exemption_repository: Repository for tracking construction waste exemptions.
         """
-        self._exemption_service = (
-            exemption_service or ConstructionWasteExemptionService()
-        )
+        self._exemption_repository = exemption_repository
 
     def can_apply(self, context: PricingContext) -> bool:
         """Applies to Oak City business customers dropping construction waste."""
@@ -66,8 +60,11 @@ class OakCityBusinessConstructionExemptionRule(PricingRule):
         # Apply tiered pricing for construction waste
         weight_kg = fraction.weight.weight
         low_rate_weight, high_rate_weight = (
-            self._exemption_service.calculate_tiered_pricing(
-                context.visitor_id, weight_kg, context.visit_date
+            self._exemption_repository.calculate_tiered_weights(
+                context.visitor_id,
+                weight_kg,
+                context.visit_date,
+                self.EXEMPTION_LIMIT_KG,
             )
         )
 
@@ -77,7 +74,7 @@ class OakCityBusinessConstructionExemptionRule(PricingRule):
         total_price = Price(low_rate_amount + high_rate_amount, Currency.EUR)
 
         # Record the construction waste for future exemption tracking
-        self._exemption_service.record_construction_waste(
+        self._exemption_repository.record_waste(
             context.visitor_id, weight_kg, context.visit_date
         )
 

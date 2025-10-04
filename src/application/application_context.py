@@ -5,14 +5,14 @@ from application.price_calculator import PriceCalculator
 from domain.business_rules.pricing_rule_engine import PricingRuleEngine
 from domain.business_rules.concrete_pricing_rules import MonthlySurchargePricingRule
 from domain.services.pricing_service import PricingService
-from domain.services.construction_waste_exemption import (
-    ConstructionWasteExemptionService,
-)
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )
 from infrastructure.repositories.in_memory_visitor_repository import (
     InMemoryVisitorRepository,
+)
+from infrastructure.repositories.in_memory_exemption_repository import (
+    InMemoryExemptionRepository,
 )
 
 
@@ -27,9 +27,21 @@ class ApplicationContext:
         # Repositories (in-memory for workshop)
         self.visit_repository = InMemoryVisitRepository()
         self.visitor_repository = InMemoryVisitorRepository()
+        self.exemption_repository = InMemoryExemptionRepository()
 
         # Set up pricing rules and engine
-        pricing_engine = PricingRuleEngine()  # Creates with default pricing rules
+        pricing_engine = PricingRuleEngine()  # Creates with default rules
+
+        # Add rules that require explicit dependencies
+        from domain.business_rules.concrete_pricing_rules import (
+            OakCityBusinessConstructionExemptionRule,
+        )
+
+        # Add the Oak City business construction exemption rule with our exemption repository
+        oak_city_exemption_rule = OakCityBusinessConstructionExemptionRule(
+            self.exemption_repository
+        )
+        pricing_engine.add_rule(oak_city_exemption_rule)
 
         # Add monthly surcharge rule to the engine
         monthly_surcharge_rule = MonthlySurchargePricingRule(
@@ -52,5 +64,5 @@ class ApplicationContext:
         """Reset state for testing scenarios."""
         self.visit_repository.clear_all_visits()
         self.visitor_service._users_cache = None
-        # Reset the singleton exemption service
-        ConstructionWasteExemptionService.reset_singleton()
+        # Clear the exemption repository
+        self.exemption_repository.clear_all_exemptions()
