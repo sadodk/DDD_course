@@ -7,7 +7,9 @@ from domain.values.price import Price, Currency
 from domain.repositories.exemption_repository import ExemptionRepository
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
-from domain.types import PersonId, Year, Month
+from domain.repositories.business_repository import BusinessRepository
+from domain.entities.business import Business
+from domain.types import PersonId, Year, Month, BusinessId
 
 
 class OakCityBusinessConstructionExemptionRule(PricingRule):
@@ -18,19 +20,27 @@ class OakCityBusinessConstructionExemptionRule(PricingRule):
     - Over 1000kg: 0.29 euro/kg
 
     Exemptions reset every calendar year.
+
+    Note: The exemption applies at the business level, not per employee.
     """
 
     LOW_RATE = 0.21  # euro/kg for first 1000kg
     HIGH_RATE = 0.29  # euro/kg over 1000kg
     EXEMPTION_LIMIT_KG = 1000.0  # Exemption limit in kg
 
-    def __init__(self, exemption_repository: ExemptionRepository):
-        """Initialize with an exemption repository.
+    def __init__(
+        self,
+        exemption_repository: ExemptionRepository,
+        business_repository: BusinessRepository,
+    ):
+        """Initialize with repositories.
 
         Args:
             exemption_repository: Repository for tracking construction waste exemptions.
+            business_repository: Repository for identifying and retrieving businesses.
         """
         self._exemption_repository = exemption_repository
+        self._business_repository = business_repository
 
     def can_apply(self, context: PricingContext) -> bool:
         """Applies to Oak City business customers dropping construction waste."""
@@ -57,11 +67,19 @@ class OakCityBusinessConstructionExemptionRule(PricingRule):
             rate = 0.08 if fraction.fraction_type == FractionType.GREEN_WASTE else 0.21
             return Price(rate * fraction.weight.weight, Currency.EUR)
 
-        # Apply tiered pricing for construction waste
+        # Find the business for this visitor
+        business = self._business_repository.find_by_visitor_id(
+            PersonId(context.visitor_id)
+        )
+        if not business:
+            # If we can't find a business, fall back to standard pricing
+            return Price(self.HIGH_RATE * fraction.weight.weight, Currency.EUR)
+
+        # Apply tiered pricing for construction waste at the business level
         weight_kg = fraction.weight.weight
         low_rate_weight, high_rate_weight = (
             self._exemption_repository.calculate_tiered_weights(
-                context.visitor_id,
+                business.business_id,
                 weight_kg,
                 context.visit_date,
                 self.EXEMPTION_LIMIT_KG,
@@ -75,7 +93,7 @@ class OakCityBusinessConstructionExemptionRule(PricingRule):
 
         # Record the construction waste for future exemption tracking
         self._exemption_repository.record_waste(
-            context.visitor_id, weight_kg, context.visit_date
+            business.business_id, weight_kg, context.visit_date
         )
 
         return total_price
