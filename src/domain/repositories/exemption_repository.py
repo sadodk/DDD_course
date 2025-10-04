@@ -1,29 +1,32 @@
 """Interface definition for the exemption repository.
 
 This repository is responsible for tracking construction waste exemptions
-for business customers, specifically for Oak City's tiered pricing system.
+for entities (businesses and households), specifically for Oak City's tiered pricing system.
 """
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Tuple, Optional
-from domain.types import BusinessId, PersonId
+from typing import Tuple, Optional, Union
+from domain.types import BusinessId, PersonId, HouseholdId
+
+# Define a type for entity IDs that can receive exemptions
+EntityId = Union[BusinessId, HouseholdId]
 
 
 class ExemptionRepository(ABC):
     """Repository interface for tracking construction waste exemptions.
 
-    This repository tracks the cumulative construction waste dropped by business customers
-    throughout a calendar year and supports the tiered pricing structure where
-    certain amounts are charged at different rates.
+    This repository tracks the cumulative construction waste dropped by entities
+    (businesses and households) throughout a calendar year and supports the
+    tiered pricing structure where certain amounts are charged at different rates.
     """
 
     @abstractmethod
-    def get_used_exemption(self, business_id: BusinessId, year: int) -> float:
-        """Get the amount of exemption already used by a business in a given year.
+    def get_used_exemption(self, entity_id: EntityId, year: int) -> float:
+        """Get the amount of exemption already used by an entity in a given year.
 
         Args:
-            business_id: The unique identifier for the business
+            entity_id: The unique identifier for the business or household
             year: The calendar year to check
 
         Returns:
@@ -33,15 +36,15 @@ class ExemptionRepository(ABC):
 
     @abstractmethod
     def record_waste(
-        self, business_id: BusinessId, weight_kg: float, visit_date: datetime
+        self, entity_id: EntityId, weight_kg: float, visit_date: datetime
     ) -> None:
-        """Record construction waste dropped by a business.
+        """Record construction waste dropped by an entity.
 
-        This updates the cumulative exemption usage for the business
+        This updates the cumulative exemption usage for the entity
         in the calendar year of the visit.
 
         Args:
-            business_id: The unique identifier for the business
+            entity_id: The unique identifier for the business or household
             weight_kg: The weight of construction waste in kg
             visit_date: The date of the visit
         """
@@ -50,7 +53,7 @@ class ExemptionRepository(ABC):
     @abstractmethod
     def calculate_tiered_weights(
         self,
-        business_id: BusinessId,
+        entity_id: EntityId,
         weight_kg: float,
         visit_date: datetime,
         tier_limit_kg: float = 1000.0,
@@ -61,7 +64,7 @@ class ExemptionRepository(ABC):
         pricing tiers, taking into account previous exemption usage.
 
         Args:
-            business_id: The unique identifier for the business
+            entity_id: The unique identifier for the business or household
             weight_kg: The weight of construction waste for this visit
             visit_date: The date of the visit
             tier_limit_kg: The limit for the lower tier pricing (default: 1000.0 kg)
@@ -81,12 +84,12 @@ class ExemptionRepository(ABC):
 
     @abstractmethod
     def get_total_exemption_usage_for_year(
-        self, business_id: BusinessId, year: int
+        self, entity_id: EntityId, year: int
     ) -> float:
-        """Get total exemption usage for a business in a specific year.
+        """Get total exemption usage for an entity in a specific year.
 
         Args:
-            business_id: The unique identifier for the business
+            entity_id: The unique identifier for the business or household
             year: The calendar year to check
 
         Returns:

@@ -18,6 +18,9 @@ from infrastructure.repositories.in_memory_exemption_repository import (
 from infrastructure.repositories.in_memory_business_repository import (
     InMemoryBusinessRepository,
 )
+from infrastructure.repositories.in_memory_household_repository import (
+    InMemoryHouseholdRepository,
+)
 
 
 class ApplicationContext:
@@ -38,6 +41,9 @@ class ApplicationContext:
         self.business_repository = InMemoryBusinessRepository(
             self.external_visitor_adapter
         )
+        self.household_repository = InMemoryHouseholdRepository(
+            self.external_visitor_adapter
+        )
 
         # Set up pricing rules and engine
         pricing_engine = PricingRuleEngine()  # Creates with default rules
@@ -46,12 +52,21 @@ class ApplicationContext:
         from domain.business_rules.concrete_pricing_rules import (
             OakCityBusinessConstructionExemptionRule,
         )
+        from domain.business_rules.household_pricing_rules import (
+            OakCityHouseholdConstructionExemptionRule,
+        )
 
         # Add the Oak City business construction exemption rule with our exemption repository
-        oak_city_exemption_rule = OakCityBusinessConstructionExemptionRule(
+        oak_city_business_exemption_rule = OakCityBusinessConstructionExemptionRule(
             self.exemption_repository, self.business_repository
         )
-        pricing_engine.add_rule(oak_city_exemption_rule)
+        pricing_engine.add_rule(oak_city_business_exemption_rule)
+
+        # Add the Oak City household construction exemption rule with our exemption repository
+        oak_city_household_exemption_rule = OakCityHouseholdConstructionExemptionRule(
+            self.exemption_repository, self.household_repository
+        )
+        pricing_engine.add_rule(oak_city_household_exemption_rule)
 
         # Add monthly surcharge rule to the engine
         monthly_surcharge_rule = MonthlySurchargePricingRule(
@@ -77,6 +92,7 @@ class ApplicationContext:
         # Clear the repositories
         self.exemption_repository.clear_all_exemptions()
         self.business_repository.clear()
+        self.household_repository.clear()
         # Reset the adapter
         self.external_visitor_adapter._visitor_cache = {}
         self.external_visitor_adapter._business_map = {}
