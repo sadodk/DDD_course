@@ -8,8 +8,7 @@ from domain.repositories.exemption_repository import ExemptionRepository
 from domain.repositories.visit_repository import VisitRepository
 from domain.repositories.visitor_repository import VisitorRepository
 from domain.repositories.business_repository import BusinessRepository
-from domain.entities.business import Business
-from domain.types import PersonId, Year, Month, BusinessId
+from domain.types import PersonId, Year, Month
 
 
 class OakCityBusinessConstructionExemptionRule(PricingRule):

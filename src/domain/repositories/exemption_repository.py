@@ -6,8 +6,8 @@ for entities (businesses and households), specifically for Oak City's tiered pri
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Tuple, Optional, Union
-from domain.types import BusinessId, PersonId, HouseholdId
+from typing import Tuple, Union
+from domain.types import BusinessId, HouseholdId
 
 # Define a type for entity IDs that can receive exemptions
 EntityId = Union[BusinessId, HouseholdId]

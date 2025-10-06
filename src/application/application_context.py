@@ -22,6 +22,14 @@ from infrastructure.repositories.in_memory_household_repository import (
     InMemoryHouseholdRepository,
 )
 
+# Add rules that require explicit dependencies
+from domain.business_rules.concrete_pricing_rules import (
+    OakCityBusinessConstructionExemptionRule,
+)
+from domain.business_rules.household_pricing_rules import (
+    OakCityHouseholdConstructionExemptionRule,
+)
+
 
 class ApplicationContext:
     """Dependency injection for the application."""
@@ -47,14 +55,6 @@ class ApplicationContext:
 
         # Set up pricing rules and engine
         pricing_engine = PricingRuleEngine()  # Creates with default rules
-
-        # Add rules that require explicit dependencies
-        from domain.business_rules.concrete_pricing_rules import (
-            OakCityBusinessConstructionExemptionRule,
-        )
-        from domain.business_rules.household_pricing_rules import (
-            OakCityHouseholdConstructionExemptionRule,
-        )
 
         # Add the Oak City business construction exemption rule with our exemption repository
         oak_city_business_exemption_rule = OakCityBusinessConstructionExemptionRule(

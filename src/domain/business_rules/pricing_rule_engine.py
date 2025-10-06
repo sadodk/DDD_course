@@ -6,7 +6,6 @@ from domain.business_rules.interface_pricing_rules import (
     PricingContext,
 )
 from domain.business_rules.concrete_pricing_rules import (
-    OakCityBusinessConstructionExemptionRule,
     PinevillePricingRule,
     OakCityPricingRule,
     BusinessCustomerDiscountRule,

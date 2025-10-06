@@ -1,13 +1,11 @@
 """Pricing rule for individual household construction waste exemptions."""
 
-from datetime import datetime
 from domain.business_rules.interface_pricing_rules import PricingRule, PricingContext
 from domain.values.dropped_fraction import DroppedFraction, FractionType
-from domain.values.weight import Weight
 from domain.values.price import Price, Currency
 from domain.repositories.exemption_repository import ExemptionRepository
 from domain.repositories.household_repository import HouseholdRepository
-from domain.types import PersonId, HouseholdId
+from domain.types import PersonId
 
 
 class OakCityHouseholdConstructionExemptionRule(PricingRule):
