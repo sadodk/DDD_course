@@ -25,12 +25,14 @@ class TestPriceCalculator:
         self.pricing_service = Mock()
         self.visit_repository = InMemoryVisitRepository()
         self.visitor_repository = InMemoryVisitorRepository()
+        self.event_dispatcher = Mock()  # Add mock event dispatcher
 
         self.calculator = PriceCalculator(
             self.visitor_service,
             self.pricing_service,
             self.visit_repository,
             self.visitor_repository,
+            self.event_dispatcher,  # Add event dispatcher to constructor
         )
 
         # Mock visitor data
