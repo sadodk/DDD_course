@@ -5,7 +5,7 @@ from domain.entities.business import Business
 from domain.entities.visitor import Visitor
 from domain.repositories.business_repository import BusinessRepository
 from domain.types import BusinessId, PersonId
-from application.external_visitor_adapter import ExternalVisitorAdapter
+from application.adapters.visitor_adapter import ExternalVisitorAdapter
 
 
 class InMemoryBusinessRepository(BusinessRepository):

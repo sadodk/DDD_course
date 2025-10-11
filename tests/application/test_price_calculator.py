@@ -2,8 +2,11 @@
 
 from unittest.mock import Mock
 
-from application.price_calculator import PriceCalculator, PriceResponse
-from application.external_visitor_service import VisitorInfo
+from application.services.price_calculation_service import (
+    PriceCalculator,
+    PriceResponse,
+)
+from application.external.visitor_api_client import VisitorInfo
 from domain.values.price import Price, Currency
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,

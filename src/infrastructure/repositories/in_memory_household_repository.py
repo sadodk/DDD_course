@@ -5,7 +5,7 @@ from domain.entities.household import Household
 from domain.entities.visitor import Visitor
 from domain.repositories.household_repository import HouseholdRepository
 from domain.types import HouseholdId, PersonId
-from application.external_visitor_adapter import ExternalVisitorAdapter
+from application.adapters.visitor_adapter import ExternalVisitorAdapter
 
 
 class InMemoryHouseholdRepository(HouseholdRepository):

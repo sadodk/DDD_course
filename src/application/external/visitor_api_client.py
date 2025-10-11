@@ -1,3 +1,12 @@
+"""Service to interact with external visitor API.
+
+- Pure infrastructure concern - talks to external HTTP API
+- Returns simple DTOs (VisitorInfo dataclass)
+- Isolated from domain - changes here don't affect domain model
+- The adapter layer (external_visitor_adapter.py) bridges this to the domain
+
+"""
+
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import requests

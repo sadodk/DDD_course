@@ -1,4 +1,4 @@
-from application.external_visitor_service import ExternalVisitorService
+from application.external.visitor_api_client import ExternalVisitorService
 
 
 def test_get_visitor_by_id_integration():

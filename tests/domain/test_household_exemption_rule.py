@@ -16,7 +16,7 @@ from infrastructure.repositories.in_memory_exemption_repository import (
 from infrastructure.repositories.in_memory_household_repository import (
     InMemoryHouseholdRepository,
 )
-from application.external_visitor_adapter import ExternalVisitorAdapter
+from application.adapters.visitor_adapter import ExternalVisitorAdapter
 from unittest.mock import MagicMock
 
 

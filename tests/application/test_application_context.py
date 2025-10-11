@@ -1,7 +1,7 @@
 """Tests for ApplicationContext."""
 
-from application.application_context import ApplicationContext
-from application.price_calculator import PriceCalculator
+from application.dependency_injection import ApplicationContext
+from application.services.price_calculation_service import PriceCalculator
 from infrastructure.repositories.in_memory_visit_repository import (
     InMemoryVisitRepository,
 )

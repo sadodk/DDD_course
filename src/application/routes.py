@@ -1,4 +1,10 @@
-"""Flask routes using DDD entities."""
+"""Flask routes using DDD entities.
+
+- Entry point for HTTP requests
+- No direct domain imports - maintains separation of concerns
+- Uses application services (price_calculator) which then use domain
+- Framework-specific (Flask) - domain is protected from web framework
+"""
 
 from dataclasses import asdict
 from flask import request, Blueprint
@@ -6,7 +12,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from logging import Logger
 
-from application.application_context import ApplicationContext
+from application.dependency_injection import ApplicationContext
 
 logger = Logger("routes")
 bp = Blueprint("routes", __name__)
