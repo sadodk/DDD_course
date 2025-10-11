@@ -20,6 +20,8 @@ from domain.types import PersonId, VisitId, CardId, EmailAddress
 from domain.values.dropped_fraction import DroppedFraction, FractionType
 from domain.values.weight import Weight
 from application.external.visitor_api_client import ExternalVisitorService
+from domain.events.event_dispatcher import EventDispatcher
+from domain.events.price_calculated_event import PriceCalculatedEvent
 
 
 @dataclass(frozen=True)
@@ -45,11 +47,13 @@ class PriceCalculator:
         pricing_service: PricingService,
         visit_repository: VisitRepository,
         visitor_repository: VisitorRepository,
+        event_dispatcher: EventDispatcher,
     ):
         self._visitor_service = visitor_service
         self._pricing_service = pricing_service
         self._visit_repository = visit_repository
         self._visitor_repository = visitor_repository
+        self._event_dispatcher = event_dispatcher
 
     def calculate_price(self, visit_data: Dict[str, Any]) -> PriceResponse:
         """Calculate price for a visit.
@@ -93,6 +97,18 @@ class PriceCalculator:
             visitor_id=str(visit.visitor_id),
             visit_date=visit.date,
         )
+
+        # Emit domain event: PriceCalculated
+        # This allows decoupled handlers (like invoice sending) to react
+        price_calculated_event = PriceCalculatedEvent(
+            visitor_id=visit_data["person_id"],
+            visit_id=visit_data["visit_id"],
+            calculated_price=total_price,
+            customer_type=customer_type or "unknown",
+            customer_email=visitor_info.email if visitor_info else None,
+            customer_city=visitor_city,
+        )
+        self._event_dispatcher.dispatch(price_calculated_event)
 
         return PriceResponse(
             price_amount=total_price.amount,

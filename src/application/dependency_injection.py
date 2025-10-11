@@ -28,6 +28,11 @@ from infrastructure.repositories.in_memory_household_repository import (
     InMemoryHouseholdRepository,
 )
 
+# Event infrastructure
+from domain.events.event_dispatcher import InMemoryEventDispatcher
+from application.external.invoice_api_client import InvoiceService
+from application.services.invoice_event_handler import InvoiceEventHandler
+
 # Add rules that require explicit dependencies
 from domain.business_rules.concrete_pricing_rules import (
     OakCityBusinessConstructionExemptionRule,
@@ -83,12 +88,27 @@ class ApplicationContext:
         # Domain services
         self.pricing_service = PricingService(pricing_engine=pricing_engine)
 
+        # Event infrastructure
+        self.event_dispatcher = InMemoryEventDispatcher()
+
+        # Invoice service (for sending invoices to business customers)
+        self.invoice_service = InvoiceService(
+            base_url="https://ddd-in-language.aardling.eu",
+            auth_token="fZg124e-cuHb",
+            workshop_id="DDD in Your Language - 2025 Sept-Oct",
+        )
+
+        # Invoice event handler (subscribes to price calculation events)
+        self.invoice_handler = InvoiceEventHandler(self.invoice_service)
+        self.event_dispatcher.subscribe(self.invoice_handler.handle)
+
         # Application services
         self.price_calculator = PriceCalculator(
             self.visitor_service,
             self.pricing_service,
             self.visit_repository,
             self.visitor_repository,
+            self.event_dispatcher,  # Pass event dispatcher to emit events
         )
 
     def reset_for_new_scenario(self):
